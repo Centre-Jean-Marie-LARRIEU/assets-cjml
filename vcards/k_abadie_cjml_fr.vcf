@@ -1,0 +1,9 @@
+BEGIN:VCARD
+VERSION:3.0
+N:ABADIE;Karine;;;
+FN:Karine ABADIE
+ORG:Centre Jean-Marie LARRIEU
+EMAIL;type=INTERNET;type=WORK;type=pref:k.abadie@cjml.fr
+TEL;type=WORK,voice:+33562913250
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD
