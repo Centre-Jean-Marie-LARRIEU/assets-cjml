@@ -1,0 +1,9 @@
+BEGIN:VCARD
+VERSION:3.0
+N:GILLE;Sébastien;;;
+FN:Sébastien GILLE
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Responsable Système d'Information
+EMAIL;type=INTERNET;type=WORK;type=pref:s.gille@cjml.fr
+TEL;type=CELL,voice:+33777685533
+END:VCARD
