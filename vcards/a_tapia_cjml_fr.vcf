@@ -1,0 +1,11 @@
+BEGIN:VCARD
+VERSION:3.0
+N:TAPIA;Annabelle;;;
+FN:Annabelle TAPIA
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Service RH / Secrétariat d'autorisation IMP Echez et IMP Nestes
+EMAIL;type=INTERNET;type=WORK;type=pref:a.tapia@cjml.fr
+TEL;type=WORK,voice:+33562500990
+TEL;type=WORK,voice:+33562930553
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD
