@@ -1,39 +1,49 @@
+<!--
+  Compatible avec le script set_user_signatures.ps1 (Version 43.1 et supérieure).
+  Template pour la signature d'email principale.
+-->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - Mélissa PUJO MENJOUET</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Roboto', sans-serif; margin: 0; background-color: #f0f2f5; }
-        .card-wrapper { padding: 40px 20px; text-align: center; }
-        .card { background-color: white; padding: 40px 25px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: inline-block; max-width: 380px; width: 100%; box-sizing: border-box; }
-        .profile-pic { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; margin-bottom: 20px; border: 4px solid #068FD0; }
-        h1 { color: #333; margin: 0 0 5px 0; font-size: 1.9em; font-weight: 700; }
-        .title { color: #FCB041; margin: 0 0 30px 0; font-size: 1.2em; font-weight: 500; }
-        .action-buttons { display: flex; flex-direction: column; gap: 15px; }
-        .button { display: flex; align-items: center; justify-content: center; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: 500; font-size: 1.1em; transition: all 0.3s; }
-        .button .icon { margin-right: 12px; width: 24px; height: 24px; background-size: contain; background-repeat: no-repeat; background-position: center; }
-        .button.primary { background-color: #068FD0; color: white; }
-        .button.primary:hover { background-color: #0572a3; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(6, 143, 208, 0.3); }
-        .button.secondary { background-color: #eef2f5; color: #333; }
-        .button.secondary:hover { background-color: #e1e8ed; }
-        .footer { margin-top: 30px; color: #aaa; font-size: 0.9em; }
-        .icon-save { background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"%3E%3Cpath d="M5 21a2 2 0 01-2-2V5a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2H5zM7 5v4h8V5H7zm-2 6v8h14v-8H5zm8 2h4v4h-4v-4z"/%3E%3C/svg%3E'); }
-        .icon-phone { background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23333"%3E%3Cpath d="M6.54 5.23a.5.5 0 01.63-.06l2.5 1.25a.5.5 0 01.22.42v2.5a.5.5 0 00.5.5h2.5a.5.5 0 00.5-.5v-2.5a.5.5 0 01.22-.42l2.5-1.25a.5.5 0 01.63.06l1.25 2.5a.5.5 0 01-.06.63L18.77 12.46a.5.5 0 01-.42.22h-2.5a.5.5 0 00-.5.5v2.5a.5.5 0 00.5.5h2.5a.5.5 0 01.42.22l2.5 1.25a.5.5 0 01.06.63l-2.5 1.25a.5.5 0 01-.63-.06L16.46 19.77a.5.5 0 01-.22-.42v-2.5a.5.5 0 00-.5-.5h-2.5a.5.5 0 00-.5.5v2.5a.5.5 0 01-.22.42l-1.25 2.5a.5.5 0 01-.63.06L5.23 18.77a.5.5 0 01-.06-.63l1.25-2.5a.5.5 0 01.42-.22h2.5a.5.5 0 00.5-.5v-2.5a.5.5 0 00-.5-.5H6.38a.5.5 0 01-.42-.22L4.71 6.54a.5.5 0 01.06-.63l1.25-2.5z"/%3E%3C/svg%3E'); }
-        .icon-office { background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23333"%3E%3Cpath d="M4 3a2 2 0 00-2 2v14a2 2 0 002 2h16a2 2 0 002-2V5a2 2 0 00-2-2H4zm0 2h16v3H4V5zm0 5h5v4H4v-4zm0 6h5v3H4v-3zm7-6h3v4h-3v-4zm0 6h3v3h-3v-3zm5-6h3v4h-3v-4zm0 6h3v3h-3v-3z"/%3E%3C/svg%3E'); }
-        .icon-email { background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23333"%3E%3Cpath d="M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm16 0H5v2.48l6.19 3.54a1 1 0 00.99.03L20 7.82V5zm-1.39 3.3L12 11.95 6.39 8.3 4 9.68v9.32h16V9.68l-2.39-1.38z"/%3E%3C/svg%3E'); }
-        .icon-location { background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23333"%3E%3Cpath d="M12 2a8 8 0 018 8c0 4.42-8 12-8 12S4 14.42 4 10a8 8 0 018-8zm0 2a6 6 0 00-6 6c0 2.65 4.96 9.01 6 10.13 1.04-1.12 6-7.48 6-10.13A6 6 0 0012 4zm0 3a3 3 0 110 6 3 3 0 010-6zm0 2a1 1 0 100 2 1 1 0 000-2z"/%3E%3C/svg%3E'); }
+        body { font-family: 'Roboto', sans-serif; text-align: center; padding: 20px; background-color: #f0f2f5; margin: 0; }
+        .card { background-color: white; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: inline-block; max-width: 420px; width: 90%; }
+        .logo { max-width: 120px; margin-bottom: 20px; }
+        .org-name { color: #068FD0; font-weight: 700; font-size: 1.8em; margin: 0 0 10px 0; text-align: center; }
+        h1 { color: #333; margin: 0; font-size: 1.5em; text-align: center; font-weight: 500; }
+        .title { color: #FCB041; margin-top: 5px; margin-bottom: 25px; font-size: 1.1em; text-align: center; font-weight: 500;}
+        hr { border: 0; height: 1px; background-color: #EAEAEA; margin: 25px 0; }
+        .contact-info { text-align: left; margin-bottom: 25px; border-left: 3px solid #068FD0; padding-left: 15px;}
+        .contact-item { margin-bottom: 12px; font-size: 1em; line-height: 1.4; }
+        .contact-item .label { font-weight: 500; color: #333; display: block; font-size: 0.8em; text-transform: uppercase; }
+        .contact-item a { color: #555555; text-decoration: none; word-break: break-all; }
+        .contact-item a:hover { text-decoration: underline; }
+        .action-buttons { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;}
+        .button { display: block; padding: 14px; border-radius: 8px; text-decoration: none; font-weight: 500; font-size: 1em; transition: all 0.2s; }
+        .button.primary { background-color: #068FD0; color: white !important; }
+        .button.secondary { border: 1px solid #ddd; color: #333; }
+        .button:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
-    <div class="card-wrapper">
-        <div class="card">
-            <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png" alt="Logo" class="profile-pic">
-            <h1>Mélissa PUJO MENJOUET</h1>
-            <p class="title"></p>
-            <div class="action-buttons"><a href="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/vcards/m_pujomenjouet_cjml_fr.vcf" download="Mélissa_PUJOMENJOUET.vcf" class="button primary"><span class="icon icon-save"></span>Enregistrer dans mes Contacts</a><a href="tel:+33562913250" class="button secondary"><span class="icon icon-office"></span>Appeler le Centre</a><a href="mailto:m.pujomenjouet@cjml.fr" class="button secondary"><span class="icon icon-email"></span>Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary"><span class="icon icon-location"></span>Itinéraire</a></div>
-            <div class="footer">Centre Jean-Marie LARRIEU</div>
+    <div class="card">
+        <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png" alt="Logo" class="logo">
+        <p class="org-name">Centre Jean-Marie LARRIEU</p>
+        <h1>Mélissa PUJO MENJOUET</h1>
+        <p class="title"></p>
+        <a href="data:text/vcard;charset=utf-8,BEGIN%3AVCARD%0AVERSION%3A3.0%0AN%3APUJO%20MENJOUET%3BM%C3%A9lissa%3B%3B%3B%0AFN%3AM%C3%A9lissa%20PUJO%20MENJOUET%0AORG%3ACentre%20Jean-Marie%20LARRIEU%0AEMAIL%3Btype%3DINTERNET%3Btype%3DWORK%3Btype%3Dpref%3Am.pujomenjouet%40cjml.fr%0ATEL%3Btype%3DWORK%2Cvoice%3A0562913250%0AADR%3Btype%3DWORK%3A%3B%3B414%20Rue%20du%20Layris%5Cn65710%20CAMPAN%3B%3B%3B%3B%0AEND%3AVCARD" download="Mélissa_PUJO_MENJOUET.vcf" class="button primary">Enregistrer dans mes Contacts</a>
+        <hr>
+        <div class="contact-info">
+            <div class="contact-item"><span class="label">Téléphone</span><a href="tel:0562913250">05 62 91 32 50</a></div><div class="contact-item"><span class="label">Email</span><a href="mailto:m.pujomenjouet@cjml.fr">m.pujomenjouet@cjml.fr</a></div><div class="contact-item"><span class="label">Adresse</span><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" rel="noopener noreferrer">414 Rue du Layris<br>65710 CAMPAN</a></div>
+        </div>
+        <div class="action-buttons">
+            <a href="tel:0562913250" class="button secondary">Appeler le Centre</a><a href="mailto:m.pujomenjouet@cjml.fr" class="button secondary">Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary">Itinéraire</a>
         </div>
     </div>
 </body>
