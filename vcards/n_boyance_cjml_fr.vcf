@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:BOYANCE;Nathalie;;;
+FN:Nathalie BOYANCE
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Responsable Économique et Financier
+EMAIL;type=INTERNET;type=WORK;type=pref:n.boyance@cjml.fr
+TEL;type=WORK,voice:+33562913260
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD
