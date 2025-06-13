@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:CALVET;Olivier;;;
+FN:Olivier CALVET
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Directeur Adjoint - Service des Ressources Humaines et Coordination des Autorisations (IME / DITEP et SESSAD)
+EMAIL;type=INTERNET;type=WORK;type=pref:o.calvet@cjml.fr
+TEL;type=CELL,voice:+33627512698
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD
