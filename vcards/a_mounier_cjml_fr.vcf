@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:MOUNIER;Alexandra;;;
+FN:Alexandra MOUNIER
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Chef de Service IMPro
+EMAIL;type=INTERNET;type=WORK;type=pref:a.mounier@cjml.fr
+TEL;type=CELL,voice:+33672153521
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD
