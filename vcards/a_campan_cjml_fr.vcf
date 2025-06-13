@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:CAMPAN;Anne;;;
+FN:Anne CAMPAN
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Docteur Service DITEP
+EMAIL;type=INTERNET;type=WORK;type=pref:a.campan@cjml.fr
+TEL;type=WORK,voice:+33562913250
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD
