@@ -1,0 +1,45 @@
+﻿<!--
+  Compatible avec le script set_user_signatures.ps1 (Version 43.1 et supérieure).
+  Template pour la signature d'email principale.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Signature CJML</title>
+</head>
+<body>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="font-family: Arial, sans-serif; font-size: 10pt; color: #333333; border-top: 2px solid #068FD0;">
+        <tr>
+            <td style="padding-top: 15px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                        <td style="padding-right: 15px; vertical-align: middle;">
+                            <img src="{{logo_url}}" alt="Logo" width="96" style="width: 96px; display: block;" />
+                        </td>
+                        <td style="padding-left: 15px; vertical-align: middle; border-left: 1px solid #EAEAEA;">
+                            
+                            <p style="margin: 0; padding: 0; line-height: 1.2;">
+                                <span style="font-weight: bold; font-size: 12pt; color: #068FD0;">{{givenName}} {{familyName}}</span><br>
+                                {{functionLineConditional}}
+                            </p>
+                            
+                            <div style="margin: 5px 0; font-size: 1px; line-height: 1px; height: 1px; background-color: #EAEAEA;">&nbsp;</div>
+
+                            <p style="margin: 0; padding: 0; font-size: 9pt; color: #555555; line-height: 1.3;">
+                                <a href="http://www.cjml.fr" target="_blank" rel="noopener noreferrer" style="color: #FCB041; text-decoration: underline;"><span style="font-weight: bold; color: #FCB041;">Centre Jean-Marie LARRIEU</span></a>
+                                <span style="color: #AAAAAA;">&nbsp;|&nbsp;</span>
+                                <a href="{{address_url_maps}}" target="_blank" rel="noopener noreferrer" style="color: #555555; text-decoration: underline;">{{address_texte}}</a>
+                                <br>
+                                {{phoneBlock}}
+                                <a href="mailto:{{primaryEmail}}" style="color: #555555; text-decoration: underline;">{{primaryEmail}}</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        {{digital_card_html_block}}
+    </table>
+</body>
+</html>
