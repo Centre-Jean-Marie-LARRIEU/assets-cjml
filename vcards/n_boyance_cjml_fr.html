@@ -22,30 +22,30 @@
         body {
             font-family: 'Roboto', sans-serif;
             text-align: center;
-            padding: 20px 10px;
+            padding: 15px 10px;
             background-color: var(--background-light);
             margin: 0;
             box-sizing: border-box;
-            line-height: 1.6;
+            line-height: 1.5;
             color: var(--text-dark);
         }
         .card {
             background-color: var(--card-bg);
-            padding: 30px;
+            padding: 20px;
             border-radius: 18px;
-            box-shadow: 0 12px 35px var(--shadow-medium);
+            box-shadow: 0 10px 30px var(--shadow-medium);
             display: inline-block;
             max-width: 380px;
             width: 95%;
             box-sizing: border-box;
             position: relative;
-            padding-bottom: 120px; 
+            padding-bottom: 100px; /* Espace pour les éléments du bas */
             overflow: hidden;
         }
         .logo {
             max-width: 100%;
             height: auto;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             display: block;
             margin-left: auto;
             margin-right: auto;
@@ -53,16 +53,16 @@
         h1 {
             color: var(--primary-blue);
             margin: 0;
-            font-size: 1.8em;
+            font-size: 1.7em;
             text-align: center;
             font-weight: 700;
             letter-spacing: -0.5px;
         }
         .title {
             color: var(--accent-orange);
-            margin-top: 5px;
-            margin-bottom: 30px;
-            font-size: 1.15em;
+            margin-top: 0px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
             text-align: center;
             font-weight: 500;
         }
@@ -70,29 +70,29 @@
             border: 0;
             height: 1px;
             background-color: var(--border-light);
-            margin: 30px 0;
+            margin: 15px 0;
         }
         .contact-info {
             text-align: left;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             border-left: 4px solid var(--primary-blue);
             padding-left: 18px;
         }
         .contact-item {
-            margin-bottom: 15px;
-            font-size: 1em;
-            line-height: 1.5;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+            line-height: 1.4;
         }
         .contact-item:last-child {
             margin-bottom: 0;
         }
         .contact-item .label {
-            font-weight: 500;
-            color: var(--text-medium);
+            font-weight: 700;
+            color: var(--primary-blue);
             display: block;
-            font-size: 0.85em;
+            font-size: 0.8em;
             text-transform: uppercase;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
         .contact-item a {
             color: var(--text-dark);
@@ -107,18 +107,18 @@
         .action-buttons {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 12px;
+            margin-bottom: 25px;
         }
         .button {
             display: block;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 12px;
+            border-radius: 9px;
             text-decoration: none;
             font-weight: 500;
-            font-size: 1.05em;
+            font-size: 1em;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 10px var(--shadow-light);
+            box-shadow: 0 3px 8px var(--shadow-light);
         }
         .button.primary {
             background-color: var(--primary-blue);
@@ -132,46 +132,25 @@
         }
         .button:hover {
             opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px var(--shadow-medium);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px var(--shadow-medium);
         }
 
-        /* NOUVEAU POSITIONNEMENT : Bouton Partager en bas à droite, QR Code en bas à gauche */
-
-        /* Conteneur du bouton Partager (en bas à droite) */
-        .share-button-container {
+        /* Conteneur commun pour les actions du bas (Partager et QR Code) */
+        .bottom-actions-container {
             position: absolute;
             bottom: 25px; /* Du bas de la carte */
-            right: 30px; /* De la droite de la carte */
-            width: auto; /* Ajuste la largeur à son contenu */
-        }
-        .share-main-button {
-            padding: 15px 25px;
-            border-radius: 10px;
-            font-weight: 500;
-            font-size: 1.05em;
-            text-decoration: none;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 10px var(--shadow-light);
-            background-color: var(--accent-orange); /* Couleur orange pour le bouton principal */
-            color: white !important;
-            border: 1px solid var(--accent-orange);
-            cursor: pointer;
-        }
-        .share-main-button:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px var(--shadow-medium);
+            left: 25px; /* Aligné à gauche de la carte */
+            right: 25px; /* Aligné à droite de la carte */
+            display: flex;
+            justify-content: space-between; /* Espace entre le QR code et le bouton */
+            align-items: flex-end; /* Aligner les éléments en bas (pour le texte du QR code) */
+            width: calc(100% - 50px); /* Largeur de la carte moins le padding gauche/droite */
+            box-sizing: border-box; /* Inclure padding dans la largeur */
         }
 
         /* Conteneur du QR Code (en bas à gauche) */
         .qr-code-small-container {
-            position: absolute;
-            bottom: 25px; /* Du bas de la carte */
-            left: 30px; /* De la gauche de la carte */
             display: flex;
             align-items: center;
             cursor: pointer;
@@ -180,26 +159,67 @@
             flex-direction: row; /* Ordre normal : QR Code à gauche, texte à droite */
             text-align: left; /* Pour aligner le texte à gauche */
             width: auto; /* Ajuste la largeur à son contenu */
+            /* Flex-shrink pour permettre au QR code de se réduire si besoin */
+            flex-shrink: 0;
         }
         .qr-code-small-container:hover {
-            transform: scale(1.05);
+            transform: scale(1.03);
         }
         .qr-code-small {
-            width: 55px;
-            height: 55px;
+            width: 50px;
+            height: 50px;
             border: 2px solid var(--primary-blue);
             border-radius: 6px;
             padding: 3px;
             background-color: white;
-            margin-right: 10px; /* Espace entre l'image QR et le texte */
+            margin-right: 8px;
         }
         .qr-code-text {
-            font-size: 0.75em;
+            font-size: 0.7em;
             color: var(--text-medium);
-            margin-right: 0; /* Réinitialiser la marge droite */
-            margin-left: 0;
             line-height: 1.2;
             font-weight: 500;
+            white-space: nowrap; /* Empêche le texte de se casser sur plusieurs lignes */
+        }
+
+        /* Conteneur du bouton Partager (en bas à droite) */
+        .share-button-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* Pousse le bouton à droite dans son conteneur flex */
+            /* Flex-grow pour permettre au bouton de prendre l'espace restant */
+            flex-grow: 1;
+            /* Pas de positionnement absolu ici, géré par .bottom-actions-container */
+            position: static;
+            bottom: auto;
+            left: auto;
+            right: auto;
+            /* Marge gauche pour un peu d'espace entre le QR et le bouton */
+            margin-left: 10px;
+        }
+        .share-main-button {
+            padding: 12px 15px; /* Padding ajusté pour un bouton plus compact sur mobile */
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 0.95em; /* Taille de police légèrement réduite pour tenir */
+            text-decoration: none;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px var(--shadow-light);
+            background-color: var(--accent-orange);
+            color: white !important;
+            border: 1px solid var(--accent-orange);
+            cursor: pointer;
+            white-space: nowrap; /* Empêche le texte de se casser */
+            max-width: 100%; /* S'assure que le bouton ne dépasse pas son conteneur */
+            box-sizing: border-box; /* Inclure padding dans la largeur */
+        }
+        .share-main-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px var(--shadow-medium);
         }
 
         /* QR Code Overlay et Share Overlay (partagent des styles de base pour les superpositions) */
@@ -224,38 +244,38 @@
         }
         .qr-overlay-content, .share-overlay-content {
             background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 90%;
-            max-height: 90%;
+            padding: 25px;
+            border-radius: 14px;
+            max-width: 88%;
+            max-height: 88%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             position: relative;
-            box-shadow: 0 15px 40px var(--shadow-medium);
+            box-shadow: 0 12px 30px var(--shadow-medium);
         }
         .qr-overlay-img {
             max-width: 100%;
-            max-height: calc(100vh - 180px);
+            max-height: calc(100vh - 160px);
             width: auto;
             height: auto;
-            border: 6px solid var(--primary-blue);
-            border-radius: 10px;
+            border: 5px solid var(--primary-blue);
+            border-radius: 9px;
         }
         .qr-overlay-text {
             color: var(--text-dark);
-            font-size: 1.1em;
+            font-size: 1em;
             text-align: center;
             font-weight: 500;
         }
         .qr-overlay-close, .share-overlay-close {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 10px;
+            right: 10px;
             background: none;
             border: none;
-            font-size: 2.2em;
+            font-size: 2em;
             color: var(--text-light);
             cursor: pointer;
             padding: 5px;
@@ -268,31 +288,33 @@
         .qr-overlay-content .button, .share-overlay-content .button {
             width: fit-content;
             align-self: center;
+            padding: 10px 18px;
+            font-size: 0.95em;
         }
 
         /* Styles spécifiques au contenu du menu de partage */
         .share-options-menu {
             display: flex;
             flex-direction: column;
-            gap: 15px; /* Espace entre les options de partage */
+            gap: 10px;
             width: 100%;
-            max-width: 300px; /* Largeur max pour le menu pop-up */
+            max-width: 280px;
         }
         .share-option-button {
-            padding: 14px 20px;
-            border-radius: 8px;
+            padding: 12px 18px;
+            border-radius: 7px;
             font-weight: 500;
-            font-size: 1em;
+            font-size: 0.95em;
             text-decoration: none;
             display: flex;
             justify-content: center;
             align-items: center;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 5px var(--shadow-light);
+            box-shadow: 0 2px 4px var(--shadow-light);
             color: var(--text-dark) !important;
             border: 1px solid var(--border-light);
             background-color: var(--card-bg);
-            cursor: pointer; /* Indique que c'est cliquable */
+            cursor: pointer;
         }
         .share-option-button:hover {
             background-color: var(--background-light);
@@ -303,9 +325,44 @@
         /* Styles pour les écrans plus petits, ajustements finaux */
         @media (max-width: 480px) {
             .card {
-                padding-bottom: 110px;
+                padding-bottom: 90px;
             }
-            /* Disposition inchangée pour petits écrans si ça fonctionne bien maintenant */
+            .bottom-actions-container {
+                left: 15px;
+                right: 15px;
+                bottom: 15px;
+                /* NE PAS changer en column, garder en row pour les garder côte à côte */
+                flex-direction: row; 
+                justify-content: space-between; /* Toujours espace entre eux */
+                align-items: flex-end; /* Aligner en bas si hauteurs différentes */
+                gap: 5px; /* Réduit le gap entre les deux éléments */
+                width: calc(100% - 30px); /* Largeur ajustée aux nouveaux paddings */
+            }
+            /* Pas de position static pour les enfants, ils sont flex items */
+            .qr-code-small-container, .share-button-container {
+                /* Plus de position: static, ils sont des flex items */
+                position: relative; /* ou aucun */
+                width: auto; /* Laisser flexbox gérer la largeur */
+                /* Enlève justify-content: center; qui pourrait poser problème avec space-between */
+                justify-content: flex-start; /* ou center si besoin plus spécifique */
+                flex-grow: 0; /* Ne pas grandir de manière excessive */
+            }
+            .share-button-container {
+                margin-left: 5px; /* Petit espace entre le QR code et le bouton Partager */
+            }
+            .share-main-button {
+                width: auto; /* Laisser le bouton s'ajuster à son contenu */
+                padding: 10px 12px; /* Rendre le bouton plus petit pour qu'il tienne */
+                font-size: 0.85em; /* Taille de police plus petite */
+                white-space: nowrap; /* Indispensable pour éviter que le texte ne se coupe */
+            }
+            .qr-code-text {
+                font-size: 0.65em; /* Texte encore plus petit */
+            }
+            .qr-code-small {
+                width: 45px; /* Rendre le QR code un peu plus petit sur mobile */
+                height: 45px;
+            }
         }
     </style>
 </head>
@@ -331,13 +388,15 @@
             <a href="tel:+33562913260" class="button secondary">Appeler (Direct)</a><a href="mailto:n.boyance@cjml.fr" class="button secondary">Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary">Itinéraire</a>
         </div>
 
-        <div class="share-button-container">
-            <button class="share-main-button" onclick="showShareOverlay()">Partager</button>
-        </div>
+        <div class="bottom-actions-container">
+            <div class="qr-code-small-container" onclick="showQrCodeOverlay()">
+                <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/qrcodes/n_boyance_cjml_fr_qrcode.png" alt="QR Code" class="qr-code-small">
+                <span class="qr-code-text">Scannez<br>ma carte</span>
+            </div>
 
-        <div class="qr-code-small-container" onclick="showQrCodeOverlay()">
-            <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/qrcodes/n_boyance_cjml_fr_qrcode.png" alt="QR Code" class="qr-code-small">
-            <span class="qr-code-text">Scannez<br>ma carte</span>
+            <div class="share-button-container">
+                <button class="share-main-button" onclick="showShareOverlay()">Partager</button>
+            </div>
         </div>
     </div>
 
@@ -425,11 +484,10 @@
                 console.log('Lien copié: ', linkToCopy);
             }).catch(err => {
                 console.error('Erreur lors de la copie du lien: ', err);
-                // Utiliser une zone de texte temporaire pour copier sur les anciens navigateurs
                 const textArea = document.createElement("textarea");
                 textArea.value = linkToCopy;
-                textArea.style.position = "fixed";  // Pour éviter le défilement
-                textArea.style.left = "-9999px"; // Hors de l'écran
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
                 document.body.appendChild(textArea);
                 textArea.focus();
                 textArea.select();
