@@ -22,30 +22,30 @@
         body {
             font-family: 'Roboto', sans-serif;
             text-align: center;
-            padding: 20px 10px;
+            padding: 15px 10px; /* Padding légèrement réduit */
             background-color: var(--background-light);
             margin: 0;
             box-sizing: border-box;
-            line-height: 1.6;
+            line-height: 1.5; /* Légèrement réduit pour compacter */
             color: var(--text-dark);
         }
         .card {
             background-color: var(--card-bg);
-            padding: 30px;
+            padding: 25px; /* Padding réduit de 30px à 25px */
             border-radius: 18px;
-            box-shadow: 0 12px 35px var(--shadow-medium);
+            box-shadow: 0 10px 30px var(--shadow-medium); /* Ombre légèrement compactée */
             display: inline-block;
             max-width: 380px;
             width: 95%;
             box-sizing: border-box;
             position: relative;
-            padding-bottom: 120px; 
+            padding-bottom: 100px; /* Réduit le padding pour les éléments du bas */
             overflow: hidden;
         }
         .logo {
             max-width: 100%;
             height: auto;
-            margin-bottom: 30px;
+            margin-bottom: 25px; /* Réduit la marge */
             display: block;
             margin-left: auto;
             margin-right: auto;
@@ -53,16 +53,16 @@
         h1 {
             color: var(--primary-blue);
             margin: 0;
-            font-size: 1.8em;
+            font-size: 1.7em; /* Légèrement réduit */
             text-align: center;
             font-weight: 700;
             letter-spacing: -0.5px;
         }
         .title {
             color: var(--accent-orange);
-            margin-top: 5px;
-            margin-bottom: 30px;
-            font-size: 1.15em;
+            margin-top: 3px; /* Réduit la marge */
+            margin-bottom: 25px; /* Réduit la marge */
+            font-size: 1.1em; /* Légèrement réduit */
             text-align: center;
             font-weight: 500;
         }
@@ -70,29 +70,29 @@
             border: 0;
             height: 1px;
             background-color: var(--border-light);
-            margin: 30px 0;
+            margin: 25px 0; /* Réduit la marge */
         }
         .contact-info {
             text-align: left;
-            margin-bottom: 30px;
+            margin-bottom: 25px; /* Réduit la marge */
             border-left: 4px solid var(--primary-blue);
             padding-left: 18px;
         }
         .contact-item {
-            margin-bottom: 15px;
-            font-size: 1em;
-            line-height: 1.5;
+            margin-bottom: 10px; /* Réduit la marge entre les éléments de contact */
+            font-size: 0.95em; /* Légèrement réduit */
+            line-height: 1.4; /* Légèrement réduit */
         }
         .contact-item:last-child {
             margin-bottom: 0;
         }
         .contact-item .label {
-            font-weight: 500;
-            color: var(--text-medium);
+            font-weight: 700; /* GRAS */
+            color: var(--primary-blue); /* BLEU PRIMAIRE */
             display: block;
-            font-size: 0.85em;
+            font-size: 0.8em; /* Légèrement réduit */
             text-transform: uppercase;
-            margin-bottom: 3px;
+            margin-bottom: 2px; /* Réduit la marge */
         }
         .contact-item a {
             color: var(--text-dark);
@@ -107,18 +107,18 @@
         .action-buttons {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 12px; /* Réduit la marge entre les boutons d'action */
+            margin-bottom: 25px; /* Réduit la marge */
         }
         .button {
             display: block;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 12px; /* Réduit le padding des boutons */
+            border-radius: 9px; /* Légèrement ajusté */
             text-decoration: none;
             font-weight: 500;
-            font-size: 1.05em;
+            font-size: 1em; /* Légèrement réduit */
             transition: all 0.2s ease;
-            box-shadow: 0 4px 10px var(--shadow-light);
+            box-shadow: 0 3px 8px var(--shadow-light); /* Ombre légèrement compactée */
         }
         .button.primary {
             background-color: var(--primary-blue);
@@ -132,71 +132,40 @@
         }
         .button:hover {
             opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px var(--shadow-medium);
+            transform: translateY(-1px); /* Effet réduit */
+            box-shadow: 0 4px 10px var(--shadow-medium); /* Ombre au survol réduite */
         }
 
-        /* NOUVEAU POSITIONNEMENT : Bouton Partager en bas à droite, QR Code en bas à gauche */
-
-        /* Conteneur du bouton Partager (en bas à droite) */
-        .share-button-container {
-            position: absolute;
-            bottom: 25px; /* Du bas de la carte */
-            right: 30px; /* De la droite de la carte */
-            width: auto; /* Ajuste la largeur à son contenu */
-        }
-        .share-main-button {
-            padding: 15px 25px;
-            border-radius: 10px;
-            font-weight: 500;
-            font-size: 1.05em;
-            text-decoration: none;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 10px var(--shadow-light);
-            background-color: var(--accent-orange); /* Couleur orange pour le bouton principal */
-            color: white !important;
-            border: 1px solid var(--accent-orange);
-            cursor: pointer;
-        }
-        .share-main-button:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px var(--shadow-medium);
-        }
-
-        /* Conteneur du QR Code (en bas à gauche) */
+        /* QR Code Small - Positionné en bas à gauche */
         .qr-code-small-container {
             position: absolute;
-            bottom: 25px; /* Du bas de la carte */
-            left: 30px; /* De la gauche de la carte */
+            bottom: 20px; /* Réduit la marge du bas */
+            left: 25px; /* Réduit la marge de gauche */
             display: flex;
             align-items: center;
             cursor: pointer;
             z-index: 1;
             transition: transform 0.2s ease;
-            flex-direction: row; /* Ordre normal : QR Code à gauche, texte à droite */
-            text-align: left; /* Pour aligner le texte à gauche */
-            width: auto; /* Ajuste la largeur à son contenu */
+            flex-direction: row;
+            text-align: left;
+            width: auto;
         }
         .qr-code-small-container:hover {
-            transform: scale(1.05);
+            transform: scale(1.03); /* Effet réduit */
         }
         .qr-code-small {
-            width: 55px;
-            height: 55px;
+            width: 50px; /* Légèrement réduit */
+            height: 50px;
             border: 2px solid var(--primary-blue);
             border-radius: 6px;
             padding: 3px;
             background-color: white;
-            margin-right: 10px; /* Espace entre l'image QR et le texte */
+            margin-right: 8px; /* Espace réduit */
         }
         .qr-code-text {
-            font-size: 0.75em;
+            font-size: 0.7em; /* Légèrement réduit */
             color: var(--text-medium);
-            margin-right: 0; /* Réinitialiser la marge droite */
+            margin-right: 0;
             margin-left: 0;
             line-height: 1.2;
             font-weight: 500;
@@ -224,38 +193,38 @@
         }
         .qr-overlay-content, .share-overlay-content {
             background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 90%;
-            max-height: 90%;
+            padding: 25px; /* Réduit le padding */
+            border-radius: 14px; /* Légèrement ajusté */
+            max-width: 88%; /* Légèrement réduit */
+            max-height: 88%; /* Légèrement réduit */
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 15px; /* Réduit l'espace */
             position: relative;
-            box-shadow: 0 15px 40px var(--shadow-medium);
+            box-shadow: 0 12px 30px var(--shadow-medium); /* Ombre compactée */
         }
         .qr-overlay-img {
             max-width: 100%;
-            max-height: calc(100vh - 180px);
+            max-height: calc(100vh - 160px); /* Ajusté */
             width: auto;
             height: auto;
-            border: 6px solid var(--primary-blue);
-            border-radius: 10px;
+            border: 5px solid var(--primary-blue); /* Bordure légèrement réduite */
+            border-radius: 9px; /* Légèrement ajusté */
         }
         .qr-overlay-text {
             color: var(--text-dark);
-            font-size: 1.1em;
+            font-size: 1em; /* Légèrement réduit */
             text-align: center;
             font-weight: 500;
         }
         .qr-overlay-close, .share-overlay-close {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 10px; /* Ajusté */
+            right: 10px; /* Ajusté */
             background: none;
             border: none;
-            font-size: 2.2em;
+            font-size: 2em; /* Légèrement réduit */
             color: var(--text-light);
             cursor: pointer;
             padding: 5px;
@@ -268,31 +237,33 @@
         .qr-overlay-content .button, .share-overlay-content .button {
             width: fit-content;
             align-self: center;
+            padding: 10px 18px; /* Padding réduit */
+            font-size: 0.95em; /* Taille de police réduite */
         }
 
         /* Styles spécifiques au contenu du menu de partage */
         .share-options-menu {
             display: flex;
             flex-direction: column;
-            gap: 15px; /* Espace entre les options de partage */
+            gap: 10px; /* Réduit l'espace */
             width: 100%;
-            max-width: 300px; /* Largeur max pour le menu pop-up */
+            max-width: 280px; /* Largeur max réduite */
         }
         .share-option-button {
-            padding: 14px 20px;
-            border-radius: 8px;
+            padding: 12px 18px; /* Réduit le padding */
+            border-radius: 7px; /* Légèrement ajusté */
             font-weight: 500;
-            font-size: 1em;
+            font-size: 0.95em; /* Légèrement réduit */
             text-decoration: none;
             display: flex;
             justify-content: center;
             align-items: center;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 5px var(--shadow-light);
+            box-shadow: 0 2px 4px var(--shadow-light); /* Ombre réduite */
             color: var(--text-dark) !important;
             border: 1px solid var(--border-light);
             background-color: var(--card-bg);
-            cursor: pointer; /* Indique que c'est cliquable */
+            cursor: pointer;
         }
         .share-option-button:hover {
             background-color: var(--background-light);
@@ -303,9 +274,16 @@
         /* Styles pour les écrans plus petits, ajustements finaux */
         @media (max-width: 480px) {
             .card {
-                padding-bottom: 110px;
+                padding-bottom: 100px; /* Ajustement du padding bas */
             }
-            /* Disposition inchangée pour petits écrans si ça fonctionne bien maintenant */
+            .share-button-container {
+                right: 15px; /* Ajustement marge */
+                bottom: 15px;
+            }
+            .qr-code-small-container {
+                left: 15px; /* Ajustement marge */
+                bottom: 15px;
+            }
         }
     </style>
 </head>
