@@ -31,7 +31,7 @@
         }
         .card {
             background-color: var(--card-bg);
-            padding: 20px; /* Réduit le padding de 25px à 20px */
+            padding: 20px;
             border-radius: 18px;
             box-shadow: 0 10px 30px var(--shadow-medium);
             display: inline-block;
@@ -39,20 +39,20 @@
             width: 95%;
             box-sizing: border-box;
             position: relative;
-            padding-bottom: 100px; /* Inchangé ici, on gère les marges internes */
+            padding-bottom: 100px;
             overflow: hidden;
         }
         .logo {
             max-width: 100%;
             height: auto;
-            margin-bottom: 15px; /* Réduit la marge de 25px à 15px (remonte le logo) */
+            margin-bottom: 15px;
             display: block;
             margin-left: auto;
             margin-right: auto;
         }
         h1 {
             color: var(--primary-blue);
-            margin: 0; /* Pas de marge sur h1 (le nom) */
+            margin: 0;
             font-size: 1.7em;
             text-align: center;
             font-weight: 700;
@@ -60,8 +60,8 @@
         }
         .title {
             color: var(--accent-orange);
-            margin-top: 0px; /* Réduit la marge de 3px à 0px (colle la fonction au nom) */
-            margin-bottom: 15px; /* Réduit la marge de 25px à 15px */
+            margin-top: 0px;
+            margin-bottom: 15px;
             font-size: 1.1em;
             text-align: center;
             font-weight: 500;
@@ -70,12 +70,7 @@
             border: 0;
             height: 1px;
             background-color: var(--border-light);
-            margin: 15px 0; /* Réduit la marge de 25px à 15px */
-        }
-        /* Ajuste la marge du bouton "Enregistrer" pour coller au-dessus du HR */
-        a[download] { /* Cible le bouton "Enregistrer dans mes Contacts" */
-            margin-bottom: 0px !important; /* Force la marge à zéro pour le coller au HR */
-            display: block; /* S'assure que margin-bottom fonctionne */
+            margin: 15px 0;
         }
         .contact-info {
             text-align: left;
@@ -145,14 +140,14 @@
         /* Conteneur pour aligner les deux éléments (QR code et bouton Partager) sur la même ligne logique */
         .bottom-actions-container {
             position: absolute;
-            bottom: 25px; /* Du bas de la carte */
-            left: 25px; /* Aligné à gauche de la carte */
-            right: 25px; /* Aligné à droite de la carte */
+            bottom: 25px;
+            left: 25px;
+            right: 25px;
             display: flex;
-            justify-content: space-between; /* Espace entre le QR code et le bouton */
-            align-items: flex-end; /* Aligner les éléments en bas (pour le texte du QR code) */
-            width: calc(100% - 50px); /* Largeur de la carte moins le padding gauche/droite */
-            box-sizing: border-box; /* Inclure padding dans la largeur */
+            justify-content: space-between;
+            align-items: flex-end;
+            width: calc(100% - 50px);
+            box-sizing: border-box;
         }
 
         /* Conteneur du QR Code (en bas à gauche) */
@@ -328,21 +323,28 @@
                 left: 15px;
                 right: 15px;
                 bottom: 15px;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
+                flex-direction: column; /* Revenir à la colonne sur petits écrans */
+                align-items: center; /* Centrer les deux gros blocs */
+                gap: 15px; /* Plus d'espace entre les deux gros blocs */
+            }
+            .qr-code-small-container {
+                /* Sur mobile, on les veut centrés mais pas en `space-between` par rapport à l'autre */
+                justify-content: center; /* Centre le QR code et son texte */
+            }
+            .share-button-container {
+                /* Sur mobile, on les veut centrés */
+                justify-content: center; /* Centre le bouton Partager */
             }
             .qr-code-small-container, .share-button-container {
-                position: static;
-                width: 100%;
-                justify-content: flex-start;
-                flex-direction: row;
+                position: static; /* Annuler l'absolu */
+                width: 100%; /* Reprend toute la largeur disponible */
+                /* flex-direction: row; (déjà défini) */
             }
             .qr-code-text {
                 margin-right: 0;
             }
             .share-main-button {
-                width: 100%;
+                width: 100%; /* Le bouton Partager prend toute la largeur */
             }
         }
     </style>
