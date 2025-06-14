@@ -141,18 +141,49 @@
             box-shadow: 0 6px 15px var(--shadow-medium);
         }
 
-        /* QR Code Small - Positionné en bas à DROITE */
+        /* NOUVEAU POSITIONNEMENT : Bouton Partager en bas à droite, QR Code en bas à gauche */
+
+        /* Conteneur du bouton Partager (en bas à droite) */
+        .share-button-container {
+            position: absolute;
+            bottom: 25px; /* Du bas de la carte */
+            right: 30px; /* De la droite de la carte */
+            width: auto; /* Ajuste la largeur à son contenu */
+        }
+        .share-main-button {
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 1.05em;
+            text-decoration: none;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px var(--shadow-light);
+            background-color: var(--accent-orange); /* Couleur orange pour le bouton principal */
+            color: white !important;
+            border: 1px solid var(--accent-orange);
+            cursor: pointer;
+        }
+        .share-main-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px var(--shadow-medium);
+        }
+
+        /* Conteneur du QR Code (en bas à gauche) */
         .qr-code-small-container {
             position: absolute;
-            bottom: 25px;
-            right: 30px; 
+            bottom: 25px; /* Du bas de la carte */
+            left: 30px; /* De la gauche de la carte */
             display: flex;
             align-items: center;
             cursor: pointer;
             z-index: 1;
             transition: transform 0.2s ease;
-            flex-direction: row-reverse;
-            text-align: right;
+            flex-direction: row; /* Ordre normal : QR Code à gauche, texte à droite */
+            text-align: left; /* Pour aligner le texte à gauche */
             width: auto; /* Ajuste la largeur à son contenu */
         }
         .qr-code-small-container:hover {
@@ -165,18 +196,19 @@
             border-radius: 6px;
             padding: 3px;
             background-color: white;
+            margin-right: 10px; /* Espace entre l'image QR et le texte */
         }
         .qr-code-text {
             font-size: 0.75em;
             color: var(--text-medium);
-            margin-right: 10px;
+            margin-right: 0; /* Réinitialiser la marge droite */
             margin-left: 0;
             line-height: 1.2;
             font-weight: 500;
         }
 
-        /* QR Code Overlay */
-        .qr-overlay, .share-overlay { /* Partagent des styles de base pour les superpositions */
+        /* QR Code Overlay et Share Overlay (partagent des styles de base pour les superpositions) */
+        .qr-overlay, .share-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -195,7 +227,7 @@
             opacity: 1;
             visibility: visible;
         }
-        .qr-overlay-content, .share-overlay-content { /* Partagent des styles de base pour le contenu des superpositions */
+        .qr-overlay-content, .share-overlay-content {
             background-color: var(--card-bg);
             padding: 30px;
             border-radius: 15px;
@@ -243,35 +275,6 @@
             align-self: center;
         }
 
-        /* NOUVEAU CSS pour le bouton "Partager" et le menu de partage */
-        .share-button-container {
-            position: absolute; /* Positionné absolument pour éviter les chevauchements */
-            bottom: 25px; /* Au même niveau que le QR code */
-            left: 30px; /* Positionnement à gauche */
-            width: auto; /* Largeur automatique */
-        }
-        .share-main-button {
-            padding: 15px 25px; /* Plus grand padding pour le bouton principal */
-            border-radius: 10px;
-            font-weight: 500;
-            font-size: 1.05em;
-            text-decoration: none;
-            display: inline-flex; /* Utilise flex pour centrer le texte si besoin */
-            justify-content: center;
-            align-items: center;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 10px var(--shadow-light);
-            background-color: var(--accent-orange); /* Couleur orange pour le bouton principal */
-            color: white !important;
-            border: 1px solid var(--accent-orange);
-            cursor: pointer;
-        }
-        .share-main-button:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px var(--shadow-medium);
-        }
-
         /* Styles spécifiques au contenu du menu de partage */
         .share-options-menu {
             display: flex;
@@ -294,6 +297,7 @@
             color: var(--text-dark) !important;
             border: 1px solid var(--border-light);
             background-color: var(--card-bg);
+            cursor: pointer; /* Indique que c'est cliquable */
         }
         .share-option-button:hover {
             background-color: var(--background-light);
@@ -306,19 +310,19 @@
             .card {
                 padding-bottom: 110px;
             }
-            .qr-code-small-container {
+            /* Inversion de la disposition sur les petits écrans */
+            .share-button-container {
                 right: 20px;
                 bottom: 20px;
-                flex-direction: column; /* Revenir à colonne pour petits écrans */
-                align-items: flex-end; /* Aligner le texte à droite si en colonne */
+                left: auto; /* Annule le left pour petits écrans */
             }
-            .qr-code-text {
-                margin-right: 0; /* Pas de marge droite si en colonne */
-                margin-bottom: 5px; /* Marge en dessous si en colonne */
-            }
-            .share-button-container {
+            .qr-code-small-container {
                 left: 20px;
                 bottom: 20px;
+                right: auto; /* Annule le right pour petits écrans */
+                flex-direction: row; /* Ordre normal sur petits écrans aussi */
+                align-items: center;
+                text-align: left;
             }
         }
     </style>
@@ -341,13 +345,13 @@
             <a href="tel:+33777685533" class="button secondary">Appeler (Mobile)</a><a href="tel:+33562913268" class="button secondary">Appeler (Direct)</a><a href="mailto:s.gille@cjml.fr" class="button secondary">Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary">Itinéraire</a>
         </div>
 
-        <div class="qr-code-small-container" onclick="showQrCodeOverlay()">
-            <span class="qr-code-text">Scannez<br>ma carte</span>
-            <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/qrcodes/s_gille_cjml_fr_qrcode.png" alt="QR Code" class="qr-code-small">
-        </div>
-
         <div class="share-button-container">
             <button class="share-main-button" onclick="showShareOverlay()">Partager</button>
+        </div>
+
+        <div class="qr-code-small-container" onclick="showQrCodeOverlay()">
+            <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/qrcodes/s_gille_cjml_fr_qrcode.png" alt="QR Code" class="qr-code-small">
+            <span class="qr-code-text">Scannez<br>ma carte</span>
         </div>
     </div>
 
@@ -373,7 +377,7 @@
     </div>
 
     <script>
-        // Fonctions pour l'overlay QR Code (inchangées)
+        // Fonctions pour l'overlay QR Code
         function showQrCodeOverlay() {
             const overlay = document.getElementById('qrOverlay');
             overlay.classList.add('visible');
@@ -390,7 +394,7 @@
             }
         }
 
-        // NOUVEAU : Fonctions pour l'overlay de partage
+        // Fonctions pour l'overlay de partage
         function showShareOverlay() {
             const overlay = document.getElementById('shareOverlay');
             overlay.classList.add('visible');
@@ -421,25 +425,27 @@
                     console.log('Partage natif réussi');
                 } catch (err) {
                     console.log('Erreur de partage natif ou annulé: ', err);
-                    alert("Le partage natif a été annulé ou n'est pas disponible. Veuillez copier le lien ou envoyer par email.");
+                    // Pas d'alerte ici, l'utilisateur a juste annulé ou la fonction n'est pas dispo
                 } finally {
                     hideShareOverlay(); // Toujours fermer l'overlay après tentative de partage
                 }
             } else {
                 alert("La fonction de partage native n'est pas disponible sur votre appareil/navigateur. Veuillez utiliser 'Envoyer par Email' ou 'Copier le lien'.");
-                // On pourrait laisser l'overlay ouvert ici pour que l'utilisateur choisisse une autre option
             }
         }
 
-        // Action pour copier le lien
+        // Action pour copier le lien (Améliorée)
         function copyLink() {
             const linkToCopy = 'https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/s_gille_cjml_fr.html';
             navigator.clipboard.writeText(linkToCopy).then(() => {
+                // Utiliser un message temporaire ou un toast si le design le permet
                 alert("Lien copié dans le presse-papiers !");
-                hideShareOverlay(); // Fermer l'overlay après la copie
+                console.log('Lien copié: ', linkToCopy);
             }).catch(err => {
                 console.error('Erreur lors de la copie du lien: ', err);
-                alert("Impossible de copier le lien. Veuillez le copier manuellement depuis la barre d'adresse.");
+                alert("Erreur lors de la copie du lien. Veuillez le copier manuellement depuis la barre d'adresse : " + linkToCopy);
+            }).finally(() => {
+                hideShareOverlay(); // Fermer l'overlay après l'opération (succès ou échec)
             });
         }
     </script>
