@@ -3,6 +3,7 @@
   Template pour la carte de visite numérique.
 -->
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -43,7 +44,8 @@
             width: 95%;
             box-sizing: border-box;
             position: relative;
-            padding-bottom: 70px;
+            /* Augmenté le padding-bottom pour laisser de la place au QR code et à la section de partage */
+            padding-bottom: 120px; 
             overflow: hidden;
         }
         .logo {
@@ -140,16 +142,18 @@
             box-shadow: 0 6px 15px var(--shadow-medium);
         }
 
-        /* QR Code Small */
+        /* QR Code Small - Positionné en bas à DROITE */
         .qr-code-small-container {
             position: absolute;
-            bottom: 25px;
-            left: 30px;
+            bottom: 25px; /* Ajusté pour l'espace */
+            right: 30px; /* Positionnement à droite */
             display: flex;
             align-items: center;
             cursor: pointer;
             z-index: 1;
             transition: transform 0.2s ease;
+            flex-direction: row-reverse; /* Inverse l'ordre pour que le texte soit à gauche du QR */
+            text-align: right; /* Pour aligner le texte à droite */
         }
         .qr-code-small-container:hover {
             transform: scale(1.05);
@@ -165,8 +169,8 @@
         .qr-code-text {
             font-size: 0.75em;
             color: var(--text-medium);
-            margin-left: 10px;
-            text-align: left;
+            margin-right: 10px; /* Marge à droite car le texte est à gauche */
+            margin-left: 0; /* Réinitialiser la marge gauche */
             line-height: 1.2;
             font-weight: 500;
         }
@@ -239,26 +243,52 @@
             align-self: center;
         }
 
-        /* NOUVEAU CSS pour la section de partage */
+        /* Section de partage */
         .share-section {
             margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid var(--border-light);
+            position: absolute; /* Positionné absolument pour éviter les chevauchements */
+            bottom: 25px; /* Au même niveau que le QR code */
+            left: 30px; /* Positionnement à gauche */
+            width: calc(100% - 60px - 55px - 10px); /* Largeur restante (carte - padding - QR - marge) */
+            max-width: 200px; /* Limite la largeur pour les plus grands écrans */
+            display: flex; /* Pour les boutons alignés en colonne */
+            flex-direction: column;
+            align-items: flex-start; /* Align les boutons à gauche */
+            gap: 10px;
         }
-        .share-buttons-container {
+        .share-button-main { /* Style spécifique pour le bouton "Partager cette carte" */
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95em;
+            text-decoration: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px var(--shadow-light);
+            color: var(--text-dark) !important;
+            border: 1px solid var(--border-light);
+            background-color: var(--card-bg);
+        }
+        .share-button-main:hover {
+            background-color: var(--background-light);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px var(--shadow-medium);
+        }
+        .share-buttons-container { /* Conteneur pour les boutons de partage spécifiques (Email, LinkedIn) */
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Plus petit gap pour les boutons de partage spécifiques */
-            margin-top: 15px;
+            gap: 10px;
+            margin-top: 5px; /* Légère marge au-dessus */
+            width: 100%; /* Prend toute la largeur de son parent */
         }
-        .share-button-group {
-            display: flex; /* Pour les icônes si vous en ajoutez plus tard */
-            align-items: center;
-            gap: 8px;
-        }
-        .share-button {
+        .share-button { /* Styles pour les boutons Email et LinkedIn */
             width: 100%;
-            padding: 12px; /* Un peu moins de padding que les boutons d'action principaux */
+            padding: 12px;
             border-radius: 8px;
             font-weight: 500;
             font-size: 0.95em;
@@ -278,12 +308,20 @@
             box-shadow: 0 3px 8px var(--shadow-medium);
         }
 
-        /* Styles spécifiques pour les icônes de partage, si vous voulez les ajouter */
-        .share-button img {
-            width: 20px;
-            height: 20px;
-            margin-right: 8px;
-            vertical-align: middle;
+        /* Styles pour les écrans plus petits, ajustements finaux */
+        @media (max-width: 480px) {
+            .card {
+                padding-bottom: 110px; /* Ajuster pour les plus petits écrans */
+            }
+            .qr-code-small-container {
+                right: 20px;
+                bottom: 20px;
+            }
+            .share-section {
+                left: 20px;
+                bottom: 20px;
+                width: calc(100% - 40px - 55px - 10px);
+            }
         }
     </style>
 </head>
@@ -306,18 +344,17 @@
         </div>
 
         <div class="qr-code-small-container" onclick="showQrCodeOverlay()">
-            <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/qrcodes/s_gille_cjml_fr_qrcode.png" alt="QR Code" class="qr-code-small">
             <span class="qr-code-text">Scannez<br>ma carte</span>
+            <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/qrcodes/s_gille_cjml_fr_qrcode.png" alt="QR Code" class="qr-code-small">
         </div>
 
         <div class="share-section">
-            <a href="#" class="button secondary" onclick="handleShare(event)">Partager cette carte</a>
+            <a href="#" class="share-button-main" onclick="toggleShareButtons(event)">Partager cette carte</a>
             
             <div id="fallbackShareButtons" class="share-buttons-container" style="display: none;">
                 <a href="mailto:?subject=Carte de Visite de Sébastien GILLE&body=Découvrez la carte de visite numérique de Sébastien GILLE : https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/s_gille_cjml_fr.html" class="share-button">Partager par Email</a>
-                <a href="https://wa.me/?text=Découvrez la carte de visite numérique de Sébastien GILLE : https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/s_gille_cjml_fr.html" target="_blank" rel="noopener noreferrer" class="share-button">Partager sur WhatsApp</a>
                 <a href="https://www.linkedin.com/shareArticle?mini=true&url=https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/s_gille_cjml_fr.html&title=Carte de Visite Numérique de Sébastien GILLE&summary=Découvrez la carte de visite numérique de Sébastien GILLE et connectez-vous avec eux.&source=https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/s_gille_cjml_fr.html" target="_blank" rel="noopener noreferrer" class="share-button">Partager sur LinkedIn</a>
-                </div>
+            </div>
         </div>
     </div>
 
@@ -335,6 +372,11 @@
             const overlay = document.getElementById('qrOverlay');
             overlay.classList.add('visible');
             document.body.style.overflow = 'hidden';
+            // S'assurer que les boutons de partage fallback sont masqués si l'overlay QR est ouvert
+            const fallbackButtons = document.getElementById('fallbackShareButtons');
+            if (fallbackButtons) { // Vérifier si l'élément existe
+                fallbackButtons.style.display = 'none';
+            }
         }
 
         function hideQrCodeOverlay(event) {
@@ -345,33 +387,16 @@
             }
         }
 
-        // NOUVEAU : Fonction de partage
-        async function handleShare(event) {
+        // NOUVEAU : Fonction pour afficher/masquer les boutons de partage (sans l'API Web Share)
+        function toggleShareButtons(event) {
             event.preventDefault(); // Empêche le lien de recharger la page
-            
-            const shareData = {
-                title: 'Carte de Visite Numérique de Sébastien GILLE',
-                text: 'Découvrez la carte de visite numérique de Sébastien GILLE et connectez-vous avec eux.',
-                url: 'https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/s_gille_cjml_fr.html'
-            };
 
-            if (navigator.share) {
-                try {
-                    await navigator.share(shareData);
-                    console.log('Partage natif réussi');
-                } catch (err) {
-                    console.log('Erreur de partage natif ou annulé: ', err);
-                    showFallbackShareButtons(); // Si le partage natif échoue ou est annulé
-                }
-            } else {
-                // Fallback pour les navigateurs ne supportant pas l'API Web Share
-                showFallbackShareButtons();
-            }
-        }
-
-        function showFallbackShareButtons() {
             const fallbackButtons = document.getElementById('fallbackShareButtons');
-            fallbackButtons.style.display = 'flex'; // Affiche les boutons de partage classiques
+            if (fallbackButtons.style.display === 'none' || fallbackButtons.style.display === '') {
+                fallbackButtons.style.display = 'flex';
+            } else {
+                fallbackButtons.style.display = 'none';
+            }
         }
     </script>
 </body>
