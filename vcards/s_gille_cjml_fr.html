@@ -13,32 +13,31 @@
         body {
             font-family: 'Roboto', sans-serif;
             text-align: center;
-            padding: 20px 10px; /* Ajout d'un padding horizontal plus petit pour les petits écrans */
+            padding: 20px 10px;
             background-color: #f0f2f5;
             margin: 0;
-            box-sizing: border-box; /* S'assure que le padding n'ajoute pas à la largeur totale */
+            box-sizing: border-box;
         }
         .card {
             background-color: white;
-            padding: 25px; /* Légèrement réduit le padding de la carte */
+            padding: 25px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             display: inline-block;
-            /* MODIFIÉ : Réduction de la largeur maximale et utilisation de 95% pour mieux s'adapter */
-            max-width: 380px; /* Maximum pour éviter qu'elle ne devienne trop grande sur grand écran */
-            width: 95%; /* Prend 95% de la largeur de l'écran, laissant une petite marge */
-            box-sizing: border-box; /* Important pour que le padding soit inclus dans la largeur */
+            max-width: 380px;
+            width: 95%;
+            box-sizing: border-box;
+            position: relative; /* Ajouté pour positionner le QR code absolu */
+            padding-bottom: 70px; /* Ajout d'espace pour le QR code en bas */
         }
         .logo {
-            /* MODIFIÉ : Le logo prend maintenant toute la largeur de la carte */
-            max-width: 100%; /* Prend 100% de la largeur de son conteneur (la carte) */
-            height: auto; /* Maintient le ratio d'aspect */
+            max-width: 100%;
+            height: auto;
             margin-bottom: 25px;
-            display: block; /* S'assure que l'image est un bloc pour occuper toute la largeur */
-            margin-left: auto; /* Centre l'image si elle est plus petite que 100% */
-            margin-right: auto; /* Centre l'image si elle est plus petite que 100% */
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
-        /* MODIFIÉ : Le nom de l'utilisateur est maintenant en bleu */
         h1 {
             color: #068FD0;
             margin: 0;
@@ -112,6 +111,102 @@
         .button:hover {
             opacity: 0.8;
         }
+
+        /* NOUVEAU CSS pour le QR Code */
+        .qr-code-small-container {
+            position: absolute;
+            bottom: 20px; /* Distance du bas de la carte */
+            left: 20px; /* Distance de la gauche de la carte */
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1; /* S'assure qu'il est au-dessus d'autres éléments */
+        }
+        .qr-code-small {
+            width: 50px; /* Petite taille du QR code */
+            height: 50px;
+            border: 1px solid #eee; /* Petite bordure discrète */
+            border-radius: 4px;
+        }
+        .qr-code-text {
+            font-size: 0.7em;
+            color: #555;
+            margin-left: 8px;
+            text-align: left;
+            line-height: 1.3;
+        }
+
+        /* NOUVEAU CSS pour l'overlay du QR Code */
+        .qr-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .qr-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .qr-overlay-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+        .qr-overlay-img {
+            max-width: 100%;
+            max-height: calc(100vh - 150px); /* Laisse de la place pour le texte et le bouton */
+            width: auto; /* Permet un redimensionnement proportionnel */
+            height: auto;
+            border: 5px solid #068FD0;
+            border-radius: 8px;
+        }
+        .qr-overlay-text {
+            color: #333;
+            font-size: 1em;
+            text-align: center;
+        }
+        .qr-overlay-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 2em;
+            color: #888;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .qr-overlay-close:hover {
+            color: #333;
+        }
+
+        /* Styles pour les écrans plus petits, si nécessaire */
+        @media (max-width: 480px) {
+            .card {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            .qr-code-small-container {
+                left: 15px;
+                bottom: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -127,6 +222,37 @@
         <div class="action-buttons">
             <a href="tel:+33777685533" class="button secondary">Appeler (Mobile)</a><a href="mailto:s.gille@cjml.fr" class="button secondary">Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary">Itinéraire</a>
         </div>
+
+        <div class="qr-code-small-container" onclick="showQrCodeOverlay()">
+            <img src="" alt="QR Code" class="qr-code-small">
+            <span class="qr-code-text">Scannez<br>ma carte</span>
+        </div>
     </div>
+
+    <div id="qrOverlay" class="qr-overlay" onclick="hideQrCodeOverlay(event)">
+        <div class="qr-overlay-content" onclick="event.stopPropagation()">
+            <button class="qr-overlay-close" onclick="hideQrCodeOverlay(event)">&times;</button>
+            <img id="qrOverlayImg" src="" alt="QR Code" class="qr-overlay-img">
+            <p class="qr-overlay-text">Scannez ce QR Code pour accéder à la carte de visite de <br><b>Sébastien GILLE</b></p>
+            <p><a href="" target="_blank" class="button primary" style="width: auto; padding: 10px 20px; margin-top: 10px;">Accéder à la page complète</a></p>
+        </div>
+    </div>
+
+    <script>
+        function showQrCodeOverlay() {
+            const overlay = document.getElementById('qrOverlay');
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden'; // Empêche le défilement du corps
+        }
+
+        function hideQrCodeOverlay(event) {
+            // Ne ferme l'overlay que si on clique sur le fond ou le bouton de fermeture
+            if (event.target.id === 'qrOverlay' || event.target.classList.contains('qr-overlay-close')) {
+                const overlay = document.getElementById('qrOverlay');
+                overlay.classList.remove('visible');
+                document.body.style.overflow = ''; // Rétablit le défilement
+            }
+        }
+    </script>
 </body>
 </html>
