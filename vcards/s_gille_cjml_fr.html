@@ -1,149 +1,180 @@
-<!--
-  Compatible avec le script set_user_signatures.ps1 (Version 45.0 et supérieure).
-  Template pour la signature d'email principale.
--->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - Sébastien GILLE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-blue: #068FD0;
+            --accent-orange: #FCB041;
+            --text-dark: #333333;
+            --text-medium: #555555;
+            --text-light: #888888;
+            --background-light: #f8f9fa;
+            --border-light: #EAEAEA;
+            --card-bg: white;
+            --shadow-light: rgba(0,0,0,0.08);
+            --shadow-medium: rgba(0,0,0,0.15);
+        }
+
         body {
             font-family: 'Roboto', sans-serif;
             text-align: center;
             padding: 20px 10px;
-            background-color: #f0f2f5;
+            background-color: var(--background-light);
             margin: 0;
             box-sizing: border-box;
+            line-height: 1.6;
+            color: var(--text-dark);
         }
         .card {
-            background-color: white;
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background-color: var(--card-bg);
+            padding: 30px; /* Légèrement augmenté pour un meilleur espacement */
+            border-radius: 18px; /* Rayon de bordure légèrement augmenté */
+            box-shadow: 0 12px 35px var(--shadow-medium); /* Ombre plus prononcée */
             display: inline-block;
             max-width: 380px;
             width: 95%;
             box-sizing: border-box;
-            position: relative; /* Ajouté pour positionner le QR code absolu */
-            padding-bottom: 70px; /* Ajout d'espace pour le QR code en bas */
+            position: relative;
+            padding-bottom: 70px;
+            overflow: hidden; /* Pour contenir les éléments à coins arrondis */
         }
         .logo {
             max-width: 100%;
             height: auto;
-            margin-bottom: 25px;
+            margin-bottom: 30px; /* Plus d'espace sous le logo */
             display: block;
             margin-left: auto;
             margin-right: auto;
         }
         h1 {
-            color: #068FD0;
+            color: var(--primary-blue);
             margin: 0;
-            font-size: 1.6em;
+            font-size: 1.8em; /* Légèrement plus grand */
             text-align: center;
             font-weight: 700;
+            letter-spacing: -0.5px;
         }
         .title {
-            color: #FCB041;
+            color: var(--accent-orange);
             margin-top: 5px;
-            margin-bottom: 25px;
-            font-size: 1.1em;
+            margin-bottom: 30px; /* Plus d'espace sous le titre */
+            font-size: 1.15em; /* Légèrement plus grand */
             text-align: center;
             font-weight: 500;
         }
         hr {
             border: 0;
             height: 1px;
-            background-color: #EAEAEA;
-            margin: 25px 0;
+            background-color: var(--border-light);
+            margin: 30px 0; /* Plus d'espace autour de la ligne de séparation */
         }
         .contact-info {
             text-align: left;
             margin-bottom: 30px;
-            border-left: 3px solid #068FD0;
-            padding-left: 15px;
+            border-left: 4px solid var(--primary-blue); /* Bordure un peu plus épaisse */
+            padding-left: 18px; /* Plus de padding à gauche */
         }
         .contact-item {
-            margin-bottom: 12px;
+            margin-bottom: 15px; /* Plus d'espace entre les éléments de contact */
             font-size: 1em;
-            line-height: 1.4;
+            line-height: 1.5;
+        }
+        .contact-item:last-child {
+            margin-bottom: 0; /* Pas de marge sous le dernier élément */
         }
         .contact-item .label {
             font-weight: 500;
-            color: #333;
+            color: var(--text-medium);
             display: block;
-            font-size: 0.8em;
+            font-size: 0.85em; /* Légèrement plus grand */
             text-transform: uppercase;
+            margin-bottom: 3px; /* Espacement entre label et valeur */
         }
         .contact-item a {
-            color: #555555;
+            color: var(--text-dark); /* Couleur du texte plus foncée pour la lisibilité */
             text-decoration: none;
             word-break: break-all;
+            transition: color 0.2s ease;
         }
         .contact-item a:hover {
+            color: var(--primary-blue); /* Soulignement et couleur au survol */
             text-decoration: underline;
         }
         .action-buttons {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            margin-bottom: 25px;
+            gap: 15px; /* Plus d'espace entre les boutons */
+            margin-bottom: 30px;
         }
         .button {
             display: block;
-            padding: 14px;
-            border-radius: 8px;
+            padding: 15px; /* Plus grand padding pour les boutons */
+            border-radius: 10px; /* Rayon de bordure plus prononcé */
             text-decoration: none;
             font-weight: 500;
-            font-size: 1em;
-            transition: all 0.2s;
+            font-size: 1.05em; /* Texte un peu plus grand */
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px var(--shadow-light); /* Petite ombre pour les boutons */
         }
         .button.primary {
-            background-color: #068FD0;
+            background-color: var(--primary-blue);
             color: white !important;
+            border: 1px solid var(--primary-blue);
         }
         .button.secondary {
-            border: 1px solid #ddd;
-            color: #333;
+            border: 1px solid var(--border-light);
+            background-color: var(--card-bg); /* Fond blanc pour les secondaires */
+            color: var(--text-dark) !important;
         }
         .button:hover {
-            opacity: 0.8;
+            opacity: 0.9;
+            transform: translateY(-2px); /* Léger effet de soulèvement au survol */
+            box-shadow: 0 6px 15px var(--shadow-medium);
         }
 
-        /* NOUVEAU CSS pour le QR Code */
+        /* QR Code Small */
         .qr-code-small-container {
             position: absolute;
-            bottom: 20px; /* Distance du bas de la carte */
-            left: 20px; /* Distance de la gauche de la carte */
+            bottom: 25px; /* Ajusté légèrement */
+            left: 30px; /* Ajusté avec le padding de la carte */
             display: flex;
             align-items: center;
             cursor: pointer;
-            z-index: 1; /* S'assure qu'il est au-dessus d'autres éléments */
+            z-index: 1;
+            transition: transform 0.2s ease;
+        }
+        .qr-code-small-container:hover {
+            transform: scale(1.05);
         }
         .qr-code-small {
-            width: 50px; /* Petite taille du QR code */
-            height: 50px;
-            border: 1px solid #eee; /* Petite bordure discrète */
-            border-radius: 4px;
+            width: 55px; /* Légèrement plus grand */
+            height: 55px;
+            border: 2px solid var(--primary-blue); /* Bordure bleue */
+            border-radius: 6px; /* Rayon légèrement augmenté */
+            padding: 3px; /* Petit padding pour la bordure */
+            background-color: white;
         }
         .qr-code-text {
-            font-size: 0.7em;
-            color: #555;
-            margin-left: 8px;
+            font-size: 0.75em; /* Légèrement plus grand */
+            color: var(--text-medium);
+            margin-left: 10px; /* Plus d'espace */
             text-align: left;
-            line-height: 1.3;
+            line-height: 1.2;
+            font-weight: 500;
         }
 
-        /* NOUVEAU CSS pour l'overlay du QR Code */
+        /* QR Code Overlay */
         .qr-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.85); /* Plus sombre */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -157,55 +188,51 @@
             visibility: visible;
         }
         .qr-overlay-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
+            background-color: var(--card-bg);
+            padding: 30px; /* Plus de padding */
+            border-radius: 15px;
             max-width: 90%;
             max-height: 90%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 20px; /* Plus d'espace entre les éléments */
             position: relative;
+            box-shadow: 0 15px 40px var(--shadow-medium);
         }
         .qr-overlay-img {
             max-width: 100%;
-            max-height: calc(100vh - 150px); /* Laisse de la place pour le texte et le bouton */
-            width: auto; /* Permet un redimensionnement proportionnel */
+            max-height: calc(100vh - 180px); /* Laisse plus de place */
+            width: auto;
             height: auto;
-            border: 5px solid #068FD0;
-            border-radius: 8px;
+            border: 6px solid var(--primary-blue); /* Bordure plus épaisse */
+            border-radius: 10px;
         }
         .qr-overlay-text {
-            color: #333;
-            font-size: 1em;
+            color: var(--text-dark);
+            font-size: 1.1em; /* Plus grand */
             text-align: center;
+            font-weight: 500;
         }
         .qr-overlay-close {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 15px; /* Ajusté */
+            right: 15px; /* Ajusté */
             background: none;
             border: none;
-            font-size: 2em;
-            color: #888;
+            font-size: 2.2em; /* Plus grand */
+            color: var(--text-light);
             cursor: pointer;
             padding: 5px;
+            transition: color 0.2s ease, transform 0.2s ease;
         }
         .qr-overlay-close:hover {
-            color: #333;
+            color: var(--text-dark);
+            transform: rotate(90deg); /* Petite animation */
         }
-
-        /* Styles pour les écrans plus petits, si nécessaire */
-        @media (max-width: 480px) {
-            .card {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-            .qr-code-small-container {
-                left: 15px;
-                bottom: 15px;
-            }
+        .qr-overlay-content .button { /* Style spécifique pour le bouton dans l'overlay */
+            width: fit-content; /* S'adapte au contenu */
+            align-self: center; /* Centre le bouton */
         }
     </style>
 </head>
@@ -217,10 +244,10 @@
         <a href="data:text/vcard;charset=utf-8,BEGIN%3AVCARD%0AVERSION%3A3.0%0AN%3AGILLE%3BS%C3%A9bastien%3B%3B%3B%0AFN%3AS%C3%A9bastien%20GILLE%0AORG%3ACentre%20Jean-Marie%20LARRIEU%0ATITLE%3AResponsable%20Syst%C3%A8me%20d%27Information%0AEMAIL%3Btype%3DINTERNET%3Btype%3DWORK%3Btype%3Dpref%3As.gille%40cjml.fr%0ATEL%3Btype%3DWORK%2Cvoice%3A%2B33562913268%0ATEL%3Btype%3DCELL%2Cvoice%3A%2B33777685533%0AADR%3Btype%3DWORK%3A%3B%3B414%20Rue%20du%20Layris%5Cn65710%20CAMPAN%3B%3B%3B%3B%0AEND%3AVCARD" download="Sébastien_GILLE.vcf" class="button primary">Enregistrer dans mes Contacts</a>
         <hr>
         <div class="contact-info">
-            <div class="contact-item"><span class="label">Ligne directe</span><a href="tel:+33562913268">05 62 91 32 68</a></div><div class="contact-item"><span class="label">Mobile</span><a href="tel:+33777685533">07 77 68 55 33</a></div><div class="contact-item"><span class="label">Email</span><a href="mailto:s.gille@cjml.fr">s.gille@cjml.fr</a></div><div class="contact-item"><span class="label">Adresse</span><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" rel="noopener noreferrer">414 Rue du Layris<br>65710 CAMPAN</a></div>
+            <div class="contact-item"><span class="label">Ligne directe</span><a href="tel:+33562913268">05 62 91 32 68</a></div><div class="contact-item"><span class="label">Mobile</span><a href="tel:+33777685533">07 77 68 55 33</a></div><div class="contact-item"><span class="label">Email</span><a href="mailto:s.gille@cjml.fr">s.gille@cjml.fr</a></div><div class="contact-item"><span class="label">Adresse</span><a href="https://www.google.com/maps/search/?api=1&query=" target="_blank" rel="noopener noreferrer">414 Rue du Layris<br>65710 CAMPAN</a></div>
         </div>
         <div class="action-buttons">
-            <a href="tel:+33777685533" class="button secondary">Appeler (Mobile)</a><a href="tel:+33562913268" class="button secondary">Appeler (Direct)</a><a href="mailto:s.gille@cjml.fr" class="button secondary">Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary">Itinéraire</a>
+            <a href="tel:+33777685533" class="button secondary">Appeler (Mobile)</a><a href="tel:+33562913268" class="button secondary">Appeler (Direct)</a><a href="mailto:s.gille@cjml.fr" class="button secondary">Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=" target="_blank" class="button secondary">Itinéraire</a>
         </div>
 
         <div class="qr-code-small-container" onclick="showQrCodeOverlay()">
