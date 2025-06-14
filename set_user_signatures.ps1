@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v45.19 - Carte de Visite Numérique: QR Code Interactif, Labels d'Adresse, Site Web et Partage)
+﻿# set_user_signatures.ps1 (v45.23 - Carte de Visite Numérique mise en forme compact et colorisation des titres)
 #
 param(
     [string]$SingleUserEmail = "",
