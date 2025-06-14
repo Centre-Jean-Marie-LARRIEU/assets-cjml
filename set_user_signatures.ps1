@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v45.3 - Carte de Visite Numérique: QR Code Interactif)
+﻿# set_user_signatures.ps1 (v45.8 - Carte de Visite Numérique: QR Code Interactif & Labels d'Adresse)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -23,11 +23,11 @@ DESCRIPTION:
 
     - Mode standard : Met à jour la signature principale de l'utilisateur.
     
-    - Mode Carte de Visite (-AddDigitalCard) : Génère une section "carte de visite" sous la signature.
-      Cette fonctionnalité crée une page web professionnelle (hébergée sur GitHub Pages) qui contient un lien de
+    - Mode Carte de Visite (-AddDigitalCard) : Génère une page web professionnelle (hébergée sur GitHub Pages) qui contient un lien de
       téléchargement direct pour la vCard de l'utilisateur. Pour assurer la compatibilité, la vCard est encodée
       directement dans le lien de téléchargement (méthode Data-URL).
-      Nouveauté : La carte inclut désormais un QR Code interactif qui peut être agrandi pour un partage facile.
+      Nouveauté : La carte inclut désormais un QR Code interactif qui peut être agrandi pour un partage facile,
+      et le label de l'adresse (ex: 'Siège Social') est dynamiquement affiché.
 
 PARAMÈTRES:
     -SingleUserEmail <string>
@@ -172,17 +172,33 @@ foreach ($user in $usersToProcess) {
     $familyName_val = if ($user."name.familyName") { $user."name.familyName" } else { "" }
     $title_val = if ($user."organizations.0.title") { $user."organizations.0.title" } else { "" }
     
-    $address_val = $defaultAddress
+    # Nouvelle variable pour stocker l'adresse brute du GAM
+    $userRawAddress = "" 
+    $address_val = $defaultAddress # Initialise avec l'adresse par défaut
+
     for ($i = 0; $i -lt 5; $i++) {
         $typeProperty = "addresses.$i.type"; $formattedProperty = "addresses.$i.formatted"
         if (($user.PSObject.Properties.Name -contains $typeProperty) -and ($user.$typeProperty -eq 'work')) {
             if (($user.PSObject.Properties.Name -contains $formattedProperty) -and (-not [string]::IsNullOrEmpty($user.$formattedProperty))) {
-                $address_val = $user.$formattedProperty; break
+                $address_val = $user.$formattedProperty # L'adresse de l'utilisateur est trouvée
+                $userRawAddress = $address_val # Stocke la version non formatée pour la comparaison
+                break
             }
         }
     }
+    
+    # Formate l'adresse pour la signature et la carte numérique
     $addressForSignature = ($address_val -replace "`r`n", " - " -replace "`n", " - ").Trim()
+    $addressForDigitalCard = ($address_val -replace "`r`n", "<br>").Trim()
     $address_url_maps = "https://www.google.com/maps/search/?api=1&query=" + [System.Net.WebUtility]::UrlEncode($addressForSignature)
+
+    # NOUVEAU: Label pour l'adresse sur la carte de visite numérique
+    # Utiliser un string comparateur pour une comparaison plus fiable des adresses
+    if ([string]::Compare($userRawAddress.Trim(), ($defaultAddress -replace "`r`n", "`n").Trim(), $true) -eq 0 -or [string]::IsNullOrEmpty($userRawAddress)) {
+        $addressLabelForCard = "Siège Social"
+    } else {
+        $addressLabelForCard = "Adresse du Bureau"
+    }
 
     Write-Host "--- Traitement de l'utilisateur : $primaryEmail_val (Suspendu: $($user.suspended)) ---"
     
@@ -214,7 +230,6 @@ foreach ($user in $usersToProcess) {
         $vcfDataUrl = "data:text/vcard;charset=utf-8,$vcfEncodedForUrl"
         $vcardDownloadName = "$($givenName_val)_$($familyName_val).vcf".Replace(" ", "_")
         
-        $addressForDigitalCard = ($address_val -replace "`r`n", "<br>").Trim()
         # Lecture du template HTML pour la carte de visite
         $cardTemplateContent = Get-Content -Path $digitalCardTemplatePath -Encoding UTF8 -Raw
         $cardTemplateContent = $cardTemplateContent.TrimStart([char]65279, [char]22)
@@ -241,13 +256,13 @@ foreach ($user in $usersToProcess) {
             $qrCodeImageUrl_raw = "" # S'assurer que la variable est vide en cas d'échec
         }
 
-        # 4. Préparer le HTML pour les informations de contact et les boutons d'action (inchangé)
+        # 4. Préparer le HTML pour les informations de contact (téléphone et email UNIQUEMENT)
         $cardContactTextHtml = ""
         if ($phonesByType['work'].Count -gt 0) { $workNumbers = ($phonesByType['work'] | ForEach-Object { "<a href=`"tel:$($_.Raw -replace '[^0-9+]')`">$($_.Display)</a>" }) -join ', '; $cardContactTextHtml += "<div class=`"contact-item`"><span class=`"label`">Ligne directe</span>$workNumbers</div>" }
         else { $defaultPhoneFormatted = $defaultPhoneNumber -replace '^(0\d)(\d{2})(\d{2})(\d{2})(\d{2})$', '$1 $2 $3 $4 $5'; $cardContactTextHtml += "<div class=`"contact-item`"><span class=`"label`">Téléphone</span><a href=`"tel:$($defaultPhoneNumber -replace '[^0-9+]')`">$defaultPhoneFormatted</a></div>" }
         if ($phonesByType['mobile'].Count -gt 0) { $mobileNumbers = ($phonesByType['mobile'] | ForEach-Object { "<a href=`"tel:$($_.Raw -replace '[^0-9+]')`">$($_.Display)</a>" }) -join ', '; $cardContactTextHtml += "<div class=`"contact-item`"><span class=`"label`">Mobile</span>$mobileNumbers</div>" }
         $cardContactTextHtml += "<div class=`"contact-item`"><span class=`"label`">Email</span><a href=`"mailto:$primaryEmail_val`">$primaryEmail_val</a></div>"
-        $cardContactTextHtml += "<div class=`"contact-item`"><span class=`"label`">Adresse</span><a href=`"$address_url_maps`" target=`"_blank`" rel=`"noopener noreferrer`">$addressForDigitalCard</a></div>"
+        # REMARQUE : La ligne pour l'adresse a été retirée d'ici car l'adresse est gérée par son propre bloc dans le template HTML.
         
         $actionButtonsHtml = ""
         if ($phonesByType['mobile'].Count -gt 0) { $mobilePhone = $phonesByType['mobile'][0]; $mobileTelLink = "tel:$($mobilePhone.Raw -replace '[^0-9+]')"; $actionButtonsHtml += "<a href=`"$mobileTelLink`" class=`"button secondary`">Appeler (Mobile)</a>" }
@@ -257,7 +272,19 @@ foreach ($user in $usersToProcess) {
         $actionButtonsHtml += "<a href=`"$address_url_maps`" target=`"_blank`" class=`"button secondary`">Itinéraire</a>"
 
         # 5. Maintenant que toutes les URLs sont définies, Remplir le template HTML de la carte de visite
-        $downloaderPageContent = $cardTemplateContent -replace '\{\{logo_url\}\}', $digitalCardLogoUrl -replace '\{\{user_full_name\}\}', "$givenName_val $familyName_val" -replace '\{\{user_title\}\}', $title_val -replace '\{\{contact_list_html\}\}', $cardContactTextHtml -replace '\{\{action_buttons_html\}\}', $actionButtonsHtml -replace '\{\{vcf_url\}\}', $vcfDataUrl -replace '\{\{vcf_download_name\}\}', $vcardDownloadName -replace '\{\{qrcode_image_url\}\}', $qrCodeImageUrl_raw -replace '\{\{digital_card_page_url\}\}', $downloaderPageUrl_final
+        $downloaderPageContent = $cardTemplateContent `
+                                -replace '\{\{logo_url\}\}', $digitalCardLogoUrl `
+                                -replace '\{\{user_full_name\}\}', "$givenName_val $familyName_val" `
+                                -replace '\{\{user_title\}\}', $title_val `
+                                -replace '\{\{contact_list_html\}\}', $cardContactTextHtml `
+                                -replace '\{\{action_buttons_html\}\}', $actionButtonsHtml `
+                                -replace '\{\{vcf_url\}\}', $vcfDataUrl `
+                                -replace '\{\{vcf_download_name\}\}', $vcardDownloadName `
+                                -replace '\{\{qrcode_image_url\}\}', $qrCodeImageUrl_raw `
+                                -replace '\{\{digital_card_page_url\}\}', $downloaderPageUrl_final `
+                                -replace '\{\{address_label\}\}', $addressLabelForCard `
+                                -replace '\{\{address_texte\}\}', $addressForDigitalCard
+                                
 
         # 6. Uploader le fichier HTML de la carte de visite
         $downloaderPageBytes = [System.Text.Encoding]::UTF8.GetBytes($downloaderPageContent)
@@ -278,7 +305,6 @@ foreach ($user in $usersToProcess) {
         }
     }
     
-    # ... (Le reste du script, y compris la génération de la signature finale) ...
     $logPhoneLines = @(); $phoneBlockHtml = ""; $linkStyle = "color: #555555; text-decoration: underline;"
     if ($phonesByType['work'].Count -gt 0) {
         $phoneBlockHtml += "Ligne directe : "; $phoneLinks = @(); foreach ($phone in $phonesByType['work']) { $rawNumberForTel = ($phone.Raw -replace '[^0-9+]'); $logPhoneLines += "Ligne directe : " + $phone.Display; $phoneLinks += "<a href=`"tel:$rawNumberForTel`" style=`"$linkStyle`">$($phone.Display)</a>" }; $phoneBlockHtml += $phoneLinks -join ', '; $phoneBlockHtml += "<br>"

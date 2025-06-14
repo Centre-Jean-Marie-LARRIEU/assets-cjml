@@ -1,6 +1,6 @@
 <!--
-  Compatible avec le script set_user_signatures.ps1 (Version 45.0 et supérieure).
-  Template pour la signature d'email principale.
+  Compatible avec le script set_user_signatures.ps1 (Version 45.8 et supérieure).
+  Template pour la carte de visite numérique.
 -->
 <!DOCTYPE html>
 <html lang="fr">
@@ -8,142 +8,177 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - {{user_full_name}}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-blue: #068FD0;
+            --accent-orange: #FCB041;
+            --text-dark: #333333;
+            --text-medium: #555555;
+            --text-light: #888888;
+            --background-light: #f8f9fa;
+            --border-light: #EAEAEA;
+            --card-bg: white;
+            --shadow-light: rgba(0,0,0,0.08);
+            --shadow-medium: rgba(0,0,0,0.15);
+        }
+
         body {
             font-family: 'Roboto', sans-serif;
             text-align: center;
             padding: 20px 10px;
-            background-color: #f0f2f5;
+            background-color: var(--background-light);
             margin: 0;
             box-sizing: border-box;
+            line-height: 1.6;
+            color: var(--text-dark);
         }
         .card {
-            background-color: white;
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 12px 35px var(--shadow-medium);
             display: inline-block;
             max-width: 380px;
             width: 95%;
             box-sizing: border-box;
-            position: relative; /* Ajouté pour positionner le QR code absolu */
-            padding-bottom: 70px; /* Ajout d'espace pour le QR code en bas */
+            position: relative;
+            padding-bottom: 70px;
+            overflow: hidden;
         }
         .logo {
             max-width: 100%;
             height: auto;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             display: block;
             margin-left: auto;
             margin-right: auto;
         }
         h1 {
-            color: #068FD0;
+            color: var(--primary-blue);
             margin: 0;
-            font-size: 1.6em;
+            font-size: 1.8em;
             text-align: center;
             font-weight: 700;
+            letter-spacing: -0.5px;
         }
         .title {
-            color: #FCB041;
+            color: var(--accent-orange);
             margin-top: 5px;
-            margin-bottom: 25px;
-            font-size: 1.1em;
+            margin-bottom: 30px;
+            font-size: 1.15em;
             text-align: center;
             font-weight: 500;
         }
         hr {
             border: 0;
             height: 1px;
-            background-color: #EAEAEA;
-            margin: 25px 0;
+            background-color: var(--border-light);
+            margin: 30px 0;
         }
         .contact-info {
             text-align: left;
             margin-bottom: 30px;
-            border-left: 3px solid #068FD0;
-            padding-left: 15px;
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 18px;
         }
         .contact-item {
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             font-size: 1em;
-            line-height: 1.4;
+            line-height: 1.5;
+        }
+        .contact-item:last-child {
+            margin-bottom: 0;
         }
         .contact-item .label {
             font-weight: 500;
-            color: #333;
+            color: var(--text-medium);
             display: block;
-            font-size: 0.8em;
+            font-size: 0.85em;
             text-transform: uppercase;
+            margin-bottom: 3px;
         }
         .contact-item a {
-            color: #555555;
+            color: var(--text-dark);
             text-decoration: none;
             word-break: break-all;
+            transition: color 0.2s ease;
         }
         .contact-item a:hover {
+            color: var(--primary-blue);
             text-decoration: underline;
         }
         .action-buttons {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            margin-bottom: 25px;
+            gap: 15px;
+            margin-bottom: 30px;
         }
         .button {
             display: block;
-            padding: 14px;
-            border-radius: 8px;
+            padding: 15px;
+            border-radius: 10px;
             text-decoration: none;
             font-weight: 500;
-            font-size: 1em;
-            transition: all 0.2s;
+            font-size: 1.05em;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px var(--shadow-light);
         }
         .button.primary {
-            background-color: #068FD0;
+            background-color: var(--primary-blue);
             color: white !important;
+            border: 1px solid var(--primary-blue);
         }
         .button.secondary {
-            border: 1px solid #ddd;
-            color: #333;
+            border: 1px solid var(--border-light);
+            background-color: var(--card-bg);
+            color: var(--text-dark) !important;
         }
         .button:hover {
-            opacity: 0.8;
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px var(--shadow-medium);
         }
 
-        /* NOUVEAU CSS pour le QR Code */
+        /* QR Code Small */
         .qr-code-small-container {
             position: absolute;
-            bottom: 20px; /* Distance du bas de la carte */
-            left: 20px; /* Distance de la gauche de la carte */
+            bottom: 25px;
+            left: 30px;
             display: flex;
             align-items: center;
             cursor: pointer;
-            z-index: 1; /* S'assure qu'il est au-dessus d'autres éléments */
+            z-index: 1;
+            transition: transform 0.2s ease;
+        }
+        .qr-code-small-container:hover {
+            transform: scale(1.05);
         }
         .qr-code-small {
-            width: 50px; /* Petite taille du QR code */
-            height: 50px;
-            border: 1px solid #eee; /* Petite bordure discrète */
-            border-radius: 4px;
+            width: 55px;
+            height: 55px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 6px;
+            padding: 3px;
+            background-color: white;
         }
         .qr-code-text {
-            font-size: 0.7em;
-            color: #555;
-            margin-left: 8px;
+            font-size: 0.75em;
+            color: var(--text-medium);
+            margin-left: 10px;
             text-align: left;
-            line-height: 1.3;
+            line-height: 1.2;
+            font-weight: 500;
         }
 
-        /* NOUVEAU CSS pour l'overlay du QR Code */
+        /* QR Code Overlay */
         .qr-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.85);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -157,55 +192,51 @@
             visibility: visible;
         }
         .qr-overlay-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
             max-width: 90%;
             max-height: 90%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
             position: relative;
+            box-shadow: 0 15px 40px var(--shadow-medium);
         }
         .qr-overlay-img {
             max-width: 100%;
-            max-height: calc(100vh - 150px); /* Laisse de la place pour le texte et le bouton */
-            width: auto; /* Permet un redimensionnement proportionnel */
+            max-height: calc(100vh - 180px);
+            width: auto;
             height: auto;
-            border: 5px solid #068FD0;
-            border-radius: 8px;
+            border: 6px solid var(--primary-blue);
+            border-radius: 10px;
         }
         .qr-overlay-text {
-            color: #333;
-            font-size: 1em;
+            color: var(--text-dark);
+            font-size: 1.1em;
             text-align: center;
+            font-weight: 500;
         }
         .qr-overlay-close {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 15px;
+            right: 15px;
             background: none;
             border: none;
-            font-size: 2em;
-            color: #888;
+            font-size: 2.2em;
+            color: var(--text-light);
             cursor: pointer;
             padding: 5px;
+            transition: color 0.2s ease, transform 0.2s ease;
         }
         .qr-overlay-close:hover {
-            color: #333;
+            color: var(--text-dark);
+            transform: rotate(90deg);
         }
-
-        /* Styles pour les écrans plus petits, si nécessaire */
-        @media (max-width: 480px) {
-            .card {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-            .qr-code-small-container {
-                left: 15px;
-                bottom: 15px;
-            }
+        .qr-overlay-content .button {
+            width: fit-content;
+            align-self: center;
         }
     </style>
 </head>
@@ -218,6 +249,10 @@
         <hr>
         <div class="contact-info">
             {{contact_list_html}}
+			<div class="contact-item">
+                <span class="label">{{address_label}}</span>
+                <a href="{{address_url_maps}}" target="_blank" rel="noopener noreferrer">{{address_texte}}</a>
+            </div>
         </div>
         <div class="action-buttons">
             {{action_buttons_html}}
@@ -231,7 +266,7 @@
 
     <div id="qrOverlay" class="qr-overlay" onclick="hideQrCodeOverlay(event)">
         <div class="qr-overlay-content" onclick="event.stopPropagation()">
-            <button class="qr-overlay-close" onclick="hideQrCodeOverlay(event)">&times;</button>
+            <button class="qr-overlay-close" onclick="hideQrCodeOverlay(event)">×</button>
             <img id="qrOverlayImg" src="{{qrcode_image_url}}" alt="QR Code" class="qr-overlay-img">
             <p class="qr-overlay-text">Scannez ce QR Code pour accéder à la carte de visite de <br><b>{{user_full_name}}</b></p>
             <p><a href="{{digital_card_page_url}}" target="_blank" class="button primary" style="width: auto; padding: 10px 20px; margin-top: 10px;">Accéder à la page complète</a></p>
@@ -242,15 +277,14 @@
         function showQrCodeOverlay() {
             const overlay = document.getElementById('qrOverlay');
             overlay.classList.add('visible');
-            document.body.style.overflow = 'hidden'; // Empêche le défilement du corps
+            document.body.style.overflow = 'hidden';
         }
 
         function hideQrCodeOverlay(event) {
-            // Ne ferme l'overlay que si on clique sur le fond ou le bouton de fermeture
             if (event.target.id === 'qrOverlay' || event.target.classList.contains('qr-overlay-close')) {
                 const overlay = document.getElementById('qrOverlay');
                 overlay.classList.remove('visible');
-                document.body.style.overflow = ''; // Rétablit le défilement
+                document.body.style.overflow = '';
             }
         }
     </script>
