@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v45.2 - Carte de Visite Numérique: QR Code Interactif)
+﻿# set_user_signatures.ps1 (v45.3 - Carte de Visite Numérique: QR Code Interactif)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -197,7 +197,7 @@ foreach ($user in $usersToProcess) {
         }
     }
     
-    $digital_card_html_block = ""
+    $digital_card_html_block = "" # Réinitialise pour chaque utilisateur
     if ($AddDigitalCard -and $githubToken) {
         Write-Host "  - Génération de la Carte de Visite Numérique pour $primaryEmail_val..." -ForegroundColor Cyan
         
@@ -219,7 +219,7 @@ foreach ($user in $usersToProcess) {
         $cardTemplateContent = Get-Content -Path $digitalCardTemplatePath -Encoding UTF8 -Raw
         $cardTemplateContent = $cardTemplateContent.TrimStart([char]65279, [char]22)
 
-        # --- NOUVEL ORDRE DES OPÉRATIONS POUR LES URLS DE LA CARTE ET DU QR CODE ---
+        # --- ORDRE DES OPÉRATIONS POUR LES URLS DE LA CARTE ET DU QR CODE ---
 
         # 1. Définir le nom du fichier HTML de la carte de visite
         $downloaderPageFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_').html"
@@ -265,11 +265,20 @@ foreach ($user in $usersToProcess) {
 
         if ($uploadResultDownloader) {
             Write-Host "    Digital Card page public URL: $downloaderPageUrl_final" -ForegroundColor Green
+            # NOUVEAU : Bloc HTML pour la signature email, si la carte numérique a été générée
+            $digital_card_html_block = @"
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="padding-top:10px;"><tr>
+<td style="width:96px;padding-right:15px;vertical-align:middle;"><a href="$downloaderPageUrl_final" target="_blank" style="text-decoration:none;"><img src="$qrCodeImageUrl_raw" width="80" style="width:80px;height:80px;display:block;border:0;" alt="QR Code"/></a></td>
+<td style="padding-left:15px;vertical-align:middle;border-left:1px solid #EAEAEA;"><p style="margin:0;padding:0;font-size:9pt;color:#555555;line-height:1.3">Scannez-moi ou <a href="$downloaderPageUrl_final" target="_blank" style="color:#068FD0;text-decoration:underline">cliquez ici</a><br>pour ma carte de visite numérique.</p></td>
+</tr></table>
+"@
         } else {
-            Write-Warning "Échec de l'upload de la page de la carte numérique."
+            Write-Warning "Échec de l'upload de la page de la carte numérique. Le bloc QR Code ne sera pas ajouté à la signature."
+            $digital_card_html_block = "" # S'assurer que le bloc est vide si la carte n'a pas été uploadée
         }
     }
     
+    # ... (Le reste du script, y compris la génération de la signature finale) ...
     $logPhoneLines = @(); $phoneBlockHtml = ""; $linkStyle = "color: #555555; text-decoration: underline;"
     if ($phonesByType['work'].Count -gt 0) {
         $phoneBlockHtml += "Ligne directe : "; $phoneLinks = @(); foreach ($phone in $phonesByType['work']) { $rawNumberForTel = ($phone.Raw -replace '[^0-9+]'); $logPhoneLines += "Ligne directe : " + $phone.Display; $phoneLinks += "<a href=`"tel:$rawNumberForTel`" style=`"$linkStyle`">$($phone.Display)</a>" }; $phoneBlockHtml += $phoneLinks -join ', '; $phoneBlockHtml += "<br>"
