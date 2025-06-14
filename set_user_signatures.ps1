@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v45.9 - Carte de Visite Numérique: QR Code Interactif, Labels d'Adresse et Partage)
+﻿# set_user_signatures.ps1 (v45.19 - Carte de Visite Numérique: QR Code Interactif, Labels d'Adresse, Site Web et Partage)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -38,7 +38,7 @@ PARAMÈTRES:
 
     -AddDigitalCard
         Commutateur. Si présent, active la génération de la carte de visite numérique avec QR Code.
-
+    
     -ShowHelp
         Affiche ce message d'aide et quitte le script.
 
@@ -47,12 +47,15 @@ EXEMPLES:
     .\set_user_signatures.ps1 -ShowHelp
     
     # Met à jour la signature ET la carte de visite numérique pour un utilisateur spécifique
+    # Le site web est configuré directement dans le script.
     .\set_user_signatures.ps1 -SingleUserEmail "s.gille@cjml.fr" -AddDigitalCard
 
     # Met à jour les signatures et cartes de visite pour tous les utilisateurs actifs
+    # Le site web est configuré directement dans le script.
     .\set_user_signatures.ps1 -AddDigitalCard
 
     # Met à jour les signatures et cartes de visite pour tous les utilisateurs (actifs et suspendus)
+    # Le site web est configuré directement dans le script.
     .\set_user_signatures.ps1 -AddDigitalCard -IncludeSuspended
 "@
     Write-Host $helpText
@@ -70,13 +73,26 @@ $digitalCardTemplatePath = Join-Path -Path $projectRoot -ChildPath "digital_card
 $signatureLogoUrl = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png"
 # NOUVEAU : URL du logo rectangulaire pour la carte de visite
 $digitalCardLogoUrl = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-horizontal.jpg"
-$orgName = "Centre Jean-Marie LARRIEU"
+$orgName = "Centre Jean-Marie LARRIEU" # Nom de l'organisation pour la signature
 
 $defaultPhoneNumber = "05 62 91 32 50"
 $defaultAddress = @"
 414 Rue du Layris
 65710 CAMPAN
 "@
+
+# NOUVEAU: Définition du site web en dur dans la configuration
+$WebsiteUrl = "http://www.cjml.fr" # L'URL complète du site web
+$websiteDisplayUrl = "" # Sera généré ci-dessous
+if (-not [string]::IsNullOrEmpty($WebsiteUrl)) {
+    # Enlève "http://", "https://" et "www." pour l'affichage
+    $websiteDisplayUrl = $WebsiteUrl -replace "^https?:\/\/(www\.)?", ""
+    # Si le domaine commence par cjml.fr, on ajoute www. pour l'affichage comme demandé
+    if ($websiteDisplayUrl -like "cjml.fr*") {
+        $websiteDisplayUrl = "www." + $websiteDisplayUrl
+    }
+}
+
 
 # --- CONFIGURATION GITHUB & QR CODE ---
 try {
@@ -113,7 +129,7 @@ try {
 function Publish-FileToGitHub {
     param([string]$FileName, [byte[]]$FileContentBytes, [string]$FolderPathInRepo)
     $apiUrl = "https://api.github.com/repos/$githubUserOrOrg/$githubRepo/contents/$FolderPathInRepo/$FileName"
-    $headers = @{ "Authorization" = "Bearer $githubToken"; "Accept" = "application/vnd.github.v3+json" }
+    $headers = @{ "Authorization" = "Bearer $githubToken"; "Accept" = "application/vnd.github.com.v3+json" } 
     
     $sha = $null
     try {
@@ -172,16 +188,16 @@ foreach ($user in $usersToProcess) {
     $familyName_val = if ($user."name.familyName") { $user."name.familyName" } else { "" }
     $title_val = if ($user."organizations.0.title") { $user."organizations.0.title" } else { "" }
     
-    # Nouvelle variable pour stocker l'adresse brute du GAM
+    # Nouvelles variables pour l'adresse et le label
     $userRawAddress = "" 
-    $address_val = $defaultAddress # Initialise avec l'adresse par défaut
+    $address_val = $defaultAddress 
 
     for ($i = 0; $i -lt 5; $i++) {
         $typeProperty = "addresses.$i.type"; $formattedProperty = "addresses.$i.formatted"
         if (($user.PSObject.Properties.Name -contains $typeProperty) -and ($user.$typeProperty -eq 'work')) {
             if (($user.PSObject.Properties.Name -contains $formattedProperty) -and (-not [string]::IsNullOrEmpty($user.$formattedProperty))) {
-                $address_val = $user.$formattedProperty # L'adresse de l'utilisateur est trouvée
-                $userRawAddress = $address_val # Stocke la version non formatée pour la comparaison
+                $address_val = $user.$formattedProperty 
+                $userRawAddress = $address_val 
                 break
             }
         }
@@ -200,7 +216,7 @@ foreach ($user in $usersToProcess) {
         $addressLabelForCard = "Adresse du Bureau"
     }
 
-    Write-Host "--- Traitement de l'utilisateur : $primaryEmail_val (Suspendu: $($user.suspended)) ---"
+    Write-Host "--- Traitement de l'utilisateur : $primaryEmail_val (Suspended: $($user.suspended)) ---"
     
     $phonesByType = @{ work = @(); mobile = @() }
     for ($i = 0; $i -lt 5; $i++) {
@@ -271,19 +287,32 @@ foreach ($user in $usersToProcess) {
         $actionButtonsHtml += "<a href=`"mailto:$primaryEmail_val`" class=`"button secondary`">Envoyer un Email</a>"
         $actionButtonsHtml += "<a href=`"$address_url_maps`" target=`"_blank`" class=`"button secondary`">Itinéraire</a>"
 
-        # 5. Maintenant que toutes les URLs sont définies, Remplir le template HTML de la carte de visite
-        $downloaderPageContent = $cardTemplateContent `
-                                -replace '\{\{logo_url\}\}', $digitalCardLogoUrl `
-                                -replace '\{\{user_full_name\}\}', "$givenName_val $familyName_val" `
-                                -replace '\{\{user_title\}\}', $title_val `
-                                -replace '\{\{contact_list_html\}\}', $cardContactTextHtml `
-                                -replace '\{\{action_buttons_html\}\}', $actionButtonsHtml `
-                                -replace '\{\{vcf_url\}\}', $vcfDataUrl `
-                                -replace '\{\{vcf_download_name\}\}', $vcardDownloadName `
-                                -replace '\{\{qrcode_image_url\}\}', $qrCodeImageUrl_raw `
-                                -replace '\{\{digital_card_page_url\}\}', $downloaderPageUrl_final `
-                                -replace '\{\{address_label\}\}', $addressLabelForCard `
-                                -replace '\{\{address_texte\}\}', $addressForDigitalCard
+        # NOUVEAU: Bloc HTML conditionnel pour le site web sur la carte de visite
+        $websiteHtmlForCard = ""
+        if (-not [string]::IsNullOrEmpty($WebsiteUrl)) {
+            $websiteHtmlForCard = @"
+<div class="contact-item">
+    <span class="label">Site Web</span>
+    <a href="$WebsiteUrl" target="_blank" rel="noopener noreferrer" style="color: var(--primary-blue); text-decoration: underline;">$websiteDisplayUrl</a>
+</div>
+"@
+        }
+
+        # 5. Maintenant que toutes les URLs et blocs HTML conditionnels sont définis, Remplir le template HTML de la carte de visite
+        # Utilisation de réaffectations ligne par ligne pour plus de robusteté
+        $downloaderPageContent = $cardTemplateContent 
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{logo_url\}\}', $digitalCardLogoUrl
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{user_full_name\}\}', "$givenName_val $familyName_val"
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{user_title\}\}', $title_val
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{contact_list_html\}\}', $cardContactTextHtml
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{action_buttons_html\}\}', $actionButtonsHtml
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{vcf_url\}\}', $vcfDataUrl
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{vcf_download_name\}\}', $vcardDownloadName
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{qrcode_image_url\}\}', $qrCodeImageUrl_raw
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{digital_card_page_url\}\}', $downloaderPageUrl_final
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{address_label\}\}', $addressLabelForCard
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{address_texte\}\}', $addressForDigitalCard
+        $downloaderPageContent = $downloaderPageContent -replace '\{\{website_html_for_card\}\}', $websiteHtmlForCard # NOUVEAU REMPLACEMENT
                                 
 
         # 6. Uploader le fichier HTML de la carte de visite
@@ -292,16 +321,22 @@ foreach ($user in $usersToProcess) {
 
         if ($uploadResultDownloader) {
             Write-Host "    Digital Card page public URL: $downloaderPageUrl_final" -ForegroundColor Green
-            # NOUVEAU : Bloc HTML pour la signature email, si la carte numérique a été générée
+            # MODIFIÉ : Bloc HTML pour la signature email, avec le QR code aligné à droite
             $digital_card_html_block = @"
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="padding-top:10px;"><tr>
-<td style="width:96px;padding-right:15px;vertical-align:middle;"><a href="$downloaderPageUrl_final" target="_blank" style="text-decoration:none;"><img src="$qrCodeImageUrl_raw" width="80" style="width:80px;height:80px;display:block;border:0;" alt="QR Code"/></a></td>
-<td style="padding-left:15px;vertical-align:middle;border-left:1px solid #EAEAEA;"><p style="margin:0;padding:0;font-size:9pt;color:#555555;line-height:1.3">Scannez-moi ou <a href="$downloaderPageUrl_final" target="_blank" style="color:#068FD0;text-decoration:underline">cliquez ici</a><br>pour ma carte de visite numérique.</p></td>
+<td style="width:100%; text-align: right; vertical-align: middle;"> <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="display: inline-block;"> <tr>
+            <td style="padding-right:15px; vertical-align:middle; text-align: right;"> <p style="margin:0;padding:0;font-size:9pt;color:#555555;line-height:1.3">Scannez-moi ou <a href="$downloaderPageUrl_final" target="_blank" style="color:#068FD0;text-decoration:underline">cliquez ici</a><br>pour ma carte de visite numérique.</p>
+            </td>
+            <td style="width:96px; vertical-align:middle;"> <a href="$downloaderPageUrl_final" target="_blank" style="text-decoration:none;"><img src="$qrCodeImageUrl_raw" width="80" style="width:80px;height:80px;display:block;border:0;" alt="QR Code"/></a>
+            </td>
+        </tr>
+    </table>
+</td>
 </tr></table>
 "@
         } else {
             Write-Warning "Échec de l'upload de la page de la carte numérique. Le bloc QR Code ne sera pas ajouté à la signature."
-            $digital_card_html_block = "" # S'assurer que le bloc est vide si la carte n'a pas été uploadée
+            $digital_card_html_block = ""
         }
     }
     
@@ -324,15 +359,20 @@ foreach ($user in $usersToProcess) {
     $htmlTemplateContent = Get-Content -Path $signatureTemplatePath -Encoding UTF8 -Raw
     $charsToTrim = @([char]65279, [char]22); $htmlTemplateContent = $htmlTemplateContent.TrimStart($charsToTrim)
     
+    # MODIFIÉ : Construction de $finalSignatureHtml avec des réaffectations ligne par ligne pour plus de robustesse
     $finalSignatureHtml = $htmlTemplateContent.Replace("{{digital_card_html_block}}", $digital_card_html_block)
-    $finalSignatureHtml = $finalSignatureHtml -replace "{{givenName}}", $givenName_val `
-                                               -replace "{{familyName}}", $familyName_val `
-                                               -replace "{{functionLineConditional}}", $functionLineConditional `
-                                               -replace "{{primaryEmail}}", $primaryEmail_val `
-                                               -replace "{{phoneBlock}}", $phoneBlockHtml `
-                                               -replace "{{address_texte}}", $addressForSignature `
-                                               -replace "{{address_url_maps}}", $address_url_maps `
-                                               -replace "{{logo_url}}", $signatureLogoUrl # Assurez-vous que c'est le bon logo pour la signature
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{givenName}}", $givenName_val
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{familyName}}", $familyName_val
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{functionLineConditional}}", $functionLineConditional
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{primaryEmail}}", $primaryEmail_val
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{phoneBlock}}", $phoneBlockHtml
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{address_texte}}", $addressForSignature
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{address_url_maps}}", $address_url_maps
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{logo_url}}", $signatureLogoUrl
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{website_url}}", $WebsiteUrl
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{website_display_url}}", $websiteDisplayUrl
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{org_name}}", $orgName
+
 
     # La seule chose qui change est que le fichier temporaire sera aussi créé dans le dossier du projet
     $tempSignaturePath = Join-Path -Path $projectRoot -ChildPath "temp_sig_$($primaryEmail_val.Replace('@','_')).html"
