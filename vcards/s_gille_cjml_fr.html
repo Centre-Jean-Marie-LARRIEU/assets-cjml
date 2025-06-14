@@ -238,6 +238,53 @@
             width: fit-content;
             align-self: center;
         }
+
+        /* NOUVEAU CSS pour la section de partage */
+        .share-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+        }
+        .share-buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Plus petit gap pour les boutons de partage spécifiques */
+            margin-top: 15px;
+        }
+        .share-button-group {
+            display: flex; /* Pour les icônes si vous en ajoutez plus tard */
+            align-items: center;
+            gap: 8px;
+        }
+        .share-button {
+            width: 100%;
+            padding: 12px; /* Un peu moins de padding que les boutons d'action principaux */
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95em;
+            text-decoration: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px var(--shadow-light);
+            color: var(--text-dark) !important;
+            border: 1px solid var(--border-light);
+            background-color: var(--card-bg);
+        }
+        .share-button:hover {
+            background-color: var(--background-light);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px var(--shadow-medium);
+        }
+
+        /* Styles spécifiques pour les icônes de partage, si vous voulez les ajouter */
+        .share-button img {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -249,7 +296,7 @@
         <hr>
         <div class="contact-info">
             <div class="contact-item"><span class="label">Ligne directe</span><a href="tel:+33562913268">05 62 91 32 68</a></div><div class="contact-item"><span class="label">Mobile</span><a href="tel:+33777685533">07 77 68 55 33</a></div><div class="contact-item"><span class="label">Email</span><a href="mailto:s.gille@cjml.fr">s.gille@cjml.fr</a></div>
-			<div class="contact-item">
+            <div class="contact-item">
                 <span class="label">Siège Social</span>
                 <a href="{{address_url_maps}}" target="_blank" rel="noopener noreferrer">414 Rue du Layris<br>65710 CAMPAN</a>
             </div>
@@ -261,6 +308,16 @@
         <div class="qr-code-small-container" onclick="showQrCodeOverlay()">
             <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/qrcodes/s_gille_cjml_fr_qrcode.png" alt="QR Code" class="qr-code-small">
             <span class="qr-code-text">Scannez<br>ma carte</span>
+        </div>
+
+        <div class="share-section">
+            <a href="#" class="button secondary" onclick="handleShare(event)">Partager cette carte</a>
+            
+            <div id="fallbackShareButtons" class="share-buttons-container" style="display: none;">
+                <a href="mailto:?subject=Carte de Visite de Sébastien GILLE&body=Découvrez la carte de visite numérique de Sébastien GILLE : https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/s_gille_cjml_fr.html" class="share-button">Partager par Email</a>
+                <a href="https://wa.me/?text=Découvrez la carte de visite numérique de Sébastien GILLE : https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/s_gille_cjml_fr.html" target="_blank" rel="noopener noreferrer" class="share-button">Partager sur WhatsApp</a>
+                <a href="https://www.linkedin.com/shareArticle?mini=true&url=https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/s_gille_cjml_fr.html&title=Carte de Visite Numérique de Sébastien GILLE&summary=Découvrez la carte de visite numérique de Sébastien GILLE et connectez-vous avec eux.&source=https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/s_gille_cjml_fr.html" target="_blank" rel="noopener noreferrer" class="share-button">Partager sur LinkedIn</a>
+                </div>
         </div>
     </div>
 
@@ -286,6 +343,35 @@
                 overlay.classList.remove('visible');
                 document.body.style.overflow = '';
             }
+        }
+
+        // NOUVEAU : Fonction de partage
+        async function handleShare(event) {
+            event.preventDefault(); // Empêche le lien de recharger la page
+            
+            const shareData = {
+                title: 'Carte de Visite Numérique de Sébastien GILLE',
+                text: 'Découvrez la carte de visite numérique de Sébastien GILLE et connectez-vous avec eux.',
+                url: 'https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/s_gille_cjml_fr.html'
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                    console.log('Partage natif réussi');
+                } catch (err) {
+                    console.log('Erreur de partage natif ou annulé: ', err);
+                    showFallbackShareButtons(); // Si le partage natif échoue ou est annulé
+                }
+            } else {
+                // Fallback pour les navigateurs ne supportant pas l'API Web Share
+                showFallbackShareButtons();
+            }
+        }
+
+        function showFallbackShareButtons() {
+            const fallbackButtons = document.getElementById('fallbackShareButtons');
+            fallbackButtons.style.display = 'flex'; // Affiche les boutons de partage classiques
         }
     </script>
 </body>
