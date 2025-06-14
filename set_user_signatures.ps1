@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (Version 44.2 - Solution Finale vCard Data-URL)
+﻿# set_user_signatures.ps1 (Version 45.1 - Nouvelle Structure de Dossiers)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -53,10 +53,16 @@ EXEMPLES:
 }
 
 # --- Configuration ---
+# MODIFIÉ : Définition d'un dossier racine pour le projet pour plus de portabilité
+$projectRoot = "C:\GAMWork\Signatures"
+
 $gamPath = "C:\GAM7\gam.exe"
-$signatureTemplatePath = "C:\GAMWork\signature_template.html"
-$digitalCardTemplatePath = "C:\GAMWork\digital_card_template.html" 
-$logoPublicUrl = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png"
+$signatureTemplatePath = Join-Path -Path $projectRoot -ChildPath "signature_template.html"
+$digitalCardTemplatePath = Join-Path -Path $projectRoot -ChildPath "digital_card_template.html"
+# Logo pour la signature d'email (le carré)
+$signatureLogoUrl = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png"
+# NOUVEAU : URL du logo rectangulaire pour la carte de visite
+$digitalCardLogoUrl = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-horizontal.jpg"
 $orgName = "Centre Jean-Marie LARRIEU"
 
 $defaultPhoneNumber = "05 62 91 32 50"
@@ -67,16 +73,17 @@ $defaultAddress = @"
 
 # --- CONFIGURATION GITHUB & QR CODE ---
 try {
-    $githubToken = Get-Content -Path "C:\GAMWork\github_token.txt" -Raw
+    $tokenPath = Join-Path -Path $projectRoot -ChildPath "github_token.txt"
+    $githubToken = Get-Content -Path $tokenPath -Raw
 } catch {
-    Write-Warning "Fichier 'github_token.txt' introuvable. La fonction -AddDigitalCard sera désactivée si utilisée."
+    Write-Warning "Fichier 'github_token.txt' introuvable dans $projectRoot. La fonction -AddDigitalCard sera désactivée si utilisée."
     $githubToken = $null
 }
 $githubUserOrOrg = "Centre-Jean-Marie-LARRIEU"
 $githubRepo = "assets-cjml"
 $vcardFolderPath = "vcards" 
 $qrcodeFolderPath = "qrcodes" 
-$qrCodeDllPath = "C:\GAMWork\QRCoder.dll"
+$qrCodeDllPath = Join-Path -Path $projectRoot -ChildPath "QRCoder.dll"
 $githubPagesBaseUrl = "https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml"
 $qrCodeBlue = [byte[]](6, 143, 208)
 $qrCodeWhite = [byte[]](255, 255, 255)
@@ -100,6 +107,8 @@ function Publish-FileToGitHub {
     param([string]$FileName, [byte[]]$FileContentBytes, [string]$FolderPathInRepo)
     $apiUrl = "https://api.github.com/repos/$githubUserOrOrg/$githubRepo/contents/$FolderPathInRepo/$FileName"
     $headers = @{ "Authorization" = "Bearer $githubToken"; "Accept" = "application/vnd.github.v3+json" }
+    
+    # ... (le reste de la fonction Publish-FileToGitHub est identique) ...
     $sha = $null
     try {
         $existingFile = Invoke-RestMethod -Uri $apiUrl -Method Get -Headers $headers -ErrorAction Stop
@@ -216,8 +225,17 @@ foreach ($user in $usersToProcess) {
         if ($phonesByType['work'].Count -eq 0 -and $phonesByType['mobile'].Count -eq 0) { $actionButtonsHtml += "<a href=`"tel:$($defaultPhoneNumber -replace '[^0-9+]')`" class=`"button secondary`">Appeler le Centre</a>" }
         $actionButtonsHtml += "<a href=`"mailto:$primaryEmail_val`" class=`"button secondary`">Envoyer un Email</a>"
         $actionButtonsHtml += "<a href=`"$address_url_maps`" target=`"_blank`" class=`"button secondary`">Itinéraire</a>"
-            
-        $downloaderPageContent = $cardTemplateContent -replace '\{\{logo_url\}\}', $logoPublicUrl -replace '\{\{org_name\}\}', $orgName -replace '\{\{user_full_name\}\}', "$givenName_val $familyName_val" -replace '\{\{user_title\}\}', $title_val -replace '\{\{contact_list_html\}\}', $cardContactTextHtml -replace '\{\{action_buttons_html\}\}', $actionButtonsHtml -replace '\{\{vcf_url\}\}', $vcfDataUrl -replace '\{\{vcf_download_name\}\}', $vcardDownloadName
+
+        # MODIFIÉ : Remplacement des placeholders pour la carte de visite
+        $downloaderPageContent = $cardTemplateContent -replace '\{\{logo_url\}\}', $digitalCardLogoUrl `
+                                                     -replace '\{\{user_full_name\}\}', "$givenName_val $familyName_val" `
+                                                     -replace '\{\{user_title\}\}', $title_val `
+                                                     -replace '\{\{contact_list_html\}\}', $cardContactTextHtml `
+                                                     -replace '\{\{action_buttons_html\}\}', $actionButtonsHtml `
+                                                     -replace '\{\{vcf_url\}\}', $vcfDataUrl `
+                                                     -replace '\{\{vcf_download_name\}\}', $vcardDownloadName  
+
+        # ... (le reste de la logique d'upload et de génération du bloc est identique) ...											 
             
         $downloaderPageFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_').html"; $downloaderPageBytes = [System.Text.Encoding]::UTF8.GetBytes($downloaderPageContent)
         $uploadResultDownloader = Publish-FileToGitHub -FileName $downloaderPageFileName -FileContentBytes $downloaderPageBytes -FolderPathInRepo $vcardFolderPath
@@ -271,9 +289,11 @@ foreach ($user in $usersToProcess) {
                                                 -replace "{{address_url_maps}}", $address_url_maps `
                                                 -replace "{{logo_url}}", $logoPublicUrl
     
-    $finalSignatureHtml = $finalSignatureHtml -replace "None|#N/A|`$null", ""
-    
-    $tempSignaturePath = Join-Path -Path (Split-Path $signatureTemplatePath) -ChildPath "temp_sig_$($primaryEmail_val.Replace('@','_')).html"
+	    # MODIFIÉ : Assurez-vous que le remplacement final utilise bien le bon logo pour la signature
+    $finalSignatureHtml = $finalSignatureHtml -replace "{{logo_url}}", $signatureLogoUrl
+
+        # La seule chose qui change est que le fichier temporaire sera aussi créé dans le dossier du projet
+    $tempSignaturePath = Join-Path -Path $projectRoot -ChildPath "temp_sig_$($primaryEmail_val.Replace('@','_')).html"
     
     Write-Host "  - Checking current signature on Google..." -ForegroundColor DarkGray
     $currentSignatureHtml = & $gamPath user $primaryEmail_val print signature | Out-String
