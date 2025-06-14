@@ -103,9 +103,13 @@ while ($true) {
                 }
             }
 
+# ... (votre script précédent) ...
+
             # NOUVELLE ÉTAPE : Tirer les modifications distantes avant de pousser
-            Write-Host "4. Récupération des dernières modifications de GitHub (git pull)..." -ForegroundColor Green
-            git pull origin main
+            Write-Host "4. Récupération des dernières modifications de GitHub (git pull --allow-unrelated-histories)..." -ForegroundColor Green
+            # *** Ligne modifiée ici ***
+            git pull origin main --allow-unrelated-histories
+            # *************************
             if ($LASTEXITCODE -ne 0) {
                 Write-Host "`n--- ERREUR : Échec de la récupération des modifications distantes (git pull) ! ---" -ForegroundColor Red
                 Write-Host "Vous pourriez avoir des conflits de fusion à résoudre manuellement, ou un problème de connexion." -ForegroundColor Red
@@ -124,6 +128,7 @@ while ($true) {
             }
             break
         }
+# ... (reste du script inchangé) ...
         "2" {
             Clear-Host
             Write-Host "----------------------------------------------------------------"
