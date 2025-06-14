@@ -1,5 +1,5 @@
 <!--
-  Compatible avec le script set_user_signatures.ps1 (Version 45.8 et supérieure).
+  Compatible avec le script set_user_signatures.ps1 (Version 45.9 et supérieure).
   Template pour la carte de visite numérique.
 -->
 <!DOCTYPE html>
@@ -43,7 +43,8 @@
             width: 95%;
             box-sizing: border-box;
             position: relative;
-            padding-bottom: 70px;
+            /* Padding pour laisser de la place au bouton Partager et au QR code */
+            padding-bottom: 120px; 
             overflow: hidden;
         }
         .logo {
@@ -140,16 +141,50 @@
             box-shadow: 0 6px 15px var(--shadow-medium);
         }
 
-        /* QR Code Small */
+        /* NOUVEAU POSITIONNEMENT : Bouton Partager en bas à droite, QR Code en bas à gauche */
+
+        /* Conteneur du bouton Partager (en bas à droite) */
+        .share-button-container {
+            position: absolute;
+            bottom: 25px; /* Du bas de la carte */
+            right: 30px; /* De la droite de la carte */
+            width: auto; /* Ajuste la largeur à son contenu */
+        }
+        .share-main-button {
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 1.05em;
+            text-decoration: none;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px var(--shadow-light);
+            background-color: var(--accent-orange); /* Couleur orange pour le bouton principal */
+            color: white !important;
+            border: 1px solid var(--accent-orange);
+            cursor: pointer;
+        }
+        .share-main-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px var(--shadow-medium);
+        }
+
+        /* Conteneur du QR Code (en bas à gauche) */
         .qr-code-small-container {
             position: absolute;
-            bottom: 25px;
-            left: 30px;
+            bottom: 25px; /* Du bas de la carte */
+            left: 30px; /* De la gauche de la carte */
             display: flex;
             align-items: center;
             cursor: pointer;
             z-index: 1;
             transition: transform 0.2s ease;
+            flex-direction: row; /* Ordre normal : QR Code à gauche, texte à droite */
+            text-align: left; /* Pour aligner le texte à gauche */
+            width: auto; /* Ajuste la largeur à son contenu */
         }
         .qr-code-small-container:hover {
             transform: scale(1.05);
@@ -161,18 +196,19 @@
             border-radius: 6px;
             padding: 3px;
             background-color: white;
+            margin-right: 10px; /* Espace entre l'image QR et le texte */
         }
         .qr-code-text {
             font-size: 0.75em;
             color: var(--text-medium);
-            margin-left: 10px;
-            text-align: left;
+            margin-right: 0; /* Réinitialiser la marge droite */
+            margin-left: 0;
             line-height: 1.2;
             font-weight: 500;
         }
 
-        /* QR Code Overlay */
-        .qr-overlay {
+        /* QR Code Overlay et Share Overlay (partagent des styles de base pour les superpositions) */
+        .qr-overlay, .share-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -187,11 +223,11 @@
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-        .qr-overlay.visible {
+        .qr-overlay.visible, .share-overlay.visible {
             opacity: 1;
             visibility: visible;
         }
-        .qr-overlay-content {
+        .qr-overlay-content, .share-overlay-content {
             background-color: var(--card-bg);
             padding: 30px;
             border-radius: 15px;
@@ -218,7 +254,7 @@
             text-align: center;
             font-weight: 500;
         }
-        .qr-overlay-close {
+        .qr-overlay-close, .share-overlay-close {
             position: absolute;
             top: 15px;
             right: 15px;
@@ -230,13 +266,64 @@
             padding: 5px;
             transition: color 0.2s ease, transform 0.2s ease;
         }
-        .qr-overlay-close:hover {
+        .qr-overlay-close:hover, .share-overlay-close:hover {
             color: var(--text-dark);
             transform: rotate(90deg);
         }
-        .qr-overlay-content .button {
+        .qr-overlay-content .button, .share-overlay-content .button {
             width: fit-content;
             align-self: center;
+        }
+
+        /* Styles spécifiques au contenu du menu de partage */
+        .share-options-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Espace entre les options de partage */
+            width: 100%;
+            max-width: 300px; /* Largeur max pour le menu pop-up */
+        }
+        .share-option-button {
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 1em;
+            text-decoration: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px var(--shadow-light);
+            color: var(--text-dark) !important;
+            border: 1px solid var(--border-light);
+            background-color: var(--card-bg);
+            cursor: pointer; /* Indique que c'est cliquable */
+        }
+        .share-option-button:hover {
+            background-color: var(--background-light);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px var(--shadow-medium);
+        }
+
+        /* Styles pour les écrans plus petits, ajustements finaux */
+        @media (max-width: 480px) {
+            .card {
+                padding-bottom: 110px;
+            }
+            /* Inversion de la disposition sur les petits écrans */
+            .share-button-container {
+                right: 20px;
+                bottom: 20px;
+                left: auto; /* Annule le left pour petits écrans */
+            }
+            .qr-code-small-container {
+                left: 20px;
+                bottom: 20px;
+                right: auto; /* Annule le right pour petits écrans */
+                flex-direction: row; /* Ordre normal sur petits écrans aussi */
+                align-items: center;
+                text-align: left;
+            }
         }
     </style>
 </head>
@@ -249,13 +336,17 @@
         <hr>
         <div class="contact-info">
             {{contact_list_html}}
-			<div class="contact-item">
+            <div class="contact-item">
                 <span class="label">{{address_label}}</span>
                 <a href="{{address_url_maps}}" target="_blank" rel="noopener noreferrer">{{address_texte}}</a>
             </div>
         </div>
         <div class="action-buttons">
             {{action_buttons_html}}
+        </div>
+
+        <div class="share-button-container">
+            <button class="share-main-button" onclick="showShareOverlay()">Partager</button>
         </div>
 
         <div class="qr-code-small-container" onclick="showQrCodeOverlay()">
@@ -273,11 +364,26 @@
         </div>
     </div>
 
+    <div id="shareOverlay" class="share-overlay" onclick="hideShareOverlay(event)">
+        <div class="share-overlay-content" onclick="event.stopPropagation()">
+            <button class="share-overlay-close" onclick="hideShareOverlay(event)">×</button>
+            <p class="qr-overlay-text" style="margin-bottom: 0;">Partager la carte de visite de <br><b>{{user_full_name}}</b></p>
+            <div class="share-options-menu">
+                <button class="share-option-button" onclick="handleNativeShare()">Partager (appareil)</button>
+                <a href="mailto:?subject=Carte de Visite de {{user_full_name}}&body=Découvrez la carte de visite numérique de {{user_full_name}} : {{digital_card_page_url}}" class="share-option-button">Envoyer par Email</a>
+                <button class="share-option-button" onclick="copyLink()">Copier le lien</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Fonctions pour l'overlay QR Code
         function showQrCodeOverlay() {
             const overlay = document.getElementById('qrOverlay');
             overlay.classList.add('visible');
             document.body.style.overflow = 'hidden';
+            // Masquer l'overlay de partage si ouvert
+            document.getElementById('shareOverlay').classList.remove('visible');
         }
 
         function hideQrCodeOverlay(event) {
@@ -286,6 +392,61 @@
                 overlay.classList.remove('visible');
                 document.body.style.overflow = '';
             }
+        }
+
+        // Fonctions pour l'overlay de partage
+        function showShareOverlay() {
+            const overlay = document.getElementById('shareOverlay');
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+            // Masquer l'overlay QR si ouvert
+            document.getElementById('qrOverlay').classList.remove('visible');
+        }
+
+        function hideShareOverlay(event) {
+            if (event.target.id === 'shareOverlay' || event.target.classList.contains('share-overlay-close')) {
+                const overlay = document.getElementById('shareOverlay');
+                overlay.classList.remove('visible');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Action de partage native (via Web Share API)
+        async function handleNativeShare() {
+            const shareData = {
+                title: 'Carte de Visite Numérique de {{user_full_name}}',
+                text: 'Découvrez la carte de visite numérique de {{user_full_name}} : {{digital_card_page_url}}',
+                url: '{{digital_card_page_url}}'
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                    console.log('Partage natif réussi');
+                } catch (err) {
+                    console.log('Erreur de partage natif ou annulé: ', err);
+                    // Pas d'alerte ici, l'utilisateur a juste annulé ou la fonction n'est pas dispo
+                } finally {
+                    hideShareOverlay(); // Toujours fermer l'overlay après tentative de partage
+                }
+            } else {
+                alert("La fonction de partage native n'est pas disponible sur votre appareil/navigateur. Veuillez utiliser 'Envoyer par Email' ou 'Copier le lien'.");
+            }
+        }
+
+        // Action pour copier le lien (Améliorée)
+        function copyLink() {
+            const linkToCopy = '{{digital_card_page_url}}';
+            navigator.clipboard.writeText(linkToCopy).then(() => {
+                // Utiliser un message temporaire ou un toast si le design le permet
+                alert("Lien copié dans le presse-papiers !");
+                console.log('Lien copié: ', linkToCopy);
+            }).catch(err => {
+                console.error('Erreur lors de la copie du lien: ', err);
+                alert("Erreur lors de la copie du lien. Veuillez le copier manuellement depuis la barre d'adresse : " + linkToCopy);
+            }).finally(() => {
+                hideShareOverlay(); // Fermer l'overlay après l'opération (succès ou échec)
+            });
         }
     </script>
 </body>
