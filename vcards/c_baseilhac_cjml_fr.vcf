@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:BASEILHAC;Christelle;;;
+FN:Christelle BASEILHAC
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Secrétariat Médical / Secrétariat des Autorisations DITEP et SESSAD
+EMAIL;type=INTERNET;type=WORK;type=pref:c.baseilhac@cjml.fr
+TEL;type=WORK,voice:+33562500990
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD

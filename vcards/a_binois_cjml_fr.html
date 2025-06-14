@@ -1,0 +1,50 @@
+<!--
+  Compatible avec le script set_user_signatures.ps1 (Version 43.1 et supérieure).
+  Template pour la signature d'email principale.
+-->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Audrey BINOIS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; text-align: center; padding: 20px; background-color: #f0f2f5; margin: 0; }
+        .card { background-color: white; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: inline-block; max-width: 420px; width: 90%; }
+        .logo { max-width: 120px; margin-bottom: 20px; }
+        .org-name { color: #068FD0; font-weight: 700; font-size: 1.8em; margin: 0 0 10px 0; text-align: center; }
+        h1 { color: #333; margin: 0; font-size: 1.5em; text-align: center; font-weight: 500; }
+        .title { color: #FCB041; margin-top: 5px; margin-bottom: 25px; font-size: 1.1em; text-align: center; font-weight: 500;}
+        hr { border: 0; height: 1px; background-color: #EAEAEA; margin: 25px 0; }
+        .contact-info { text-align: left; margin-bottom: 25px; border-left: 3px solid #068FD0; padding-left: 15px;}
+        .contact-item { margin-bottom: 12px; font-size: 1em; line-height: 1.4; }
+        .contact-item .label { font-weight: 500; color: #333; display: block; font-size: 0.8em; text-transform: uppercase; }
+        .contact-item a { color: #555555; text-decoration: none; word-break: break-all; }
+        .contact-item a:hover { text-decoration: underline; }
+        .action-buttons { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;}
+        .button { display: block; padding: 14px; border-radius: 8px; text-decoration: none; font-weight: 500; font-size: 1em; transition: all 0.2s; }
+        .button.primary { background-color: #068FD0; color: white !important; }
+        .button.secondary { border: 1px solid #ddd; color: #333; }
+        .button:hover { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png" alt="Logo" class="logo">
+        <p class="org-name">Centre Jean-Marie LARRIEU</p>
+        <h1>Audrey BINOIS</h1>
+        <p class="title"></p>
+        <a href="data:text/vcard;charset=utf-8,BEGIN%3AVCARD%0AVERSION%3A3.0%0AN%3ABINOIS%3BAudrey%3B%3B%3B%0AFN%3AAudrey%20BINOIS%0AORG%3ACentre%20Jean-Marie%20LARRIEU%0AEMAIL%3Btype%3DINTERNET%3Btype%3DWORK%3Btype%3Dpref%3Aa.binois%40cjml.fr%0ATEL%3Btype%3DWORK%2Cvoice%3A0562913250%0AADR%3Btype%3DWORK%3A%3B%3B414%20Rue%20du%20Layris%5Cn65710%20CAMPAN%3B%3B%3B%3B%0AEND%3AVCARD" download="Audrey_BINOIS.vcf" class="button primary">Enregistrer dans mes Contacts</a>
+        <hr>
+        <div class="contact-info">
+            <div class="contact-item"><span class="label">Téléphone</span><a href="tel:0562913250">05 62 91 32 50</a></div><div class="contact-item"><span class="label">Email</span><a href="mailto:a.binois@cjml.fr">a.binois@cjml.fr</a></div><div class="contact-item"><span class="label">Adresse</span><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" rel="noopener noreferrer">414 Rue du Layris<br>65710 CAMPAN</a></div>
+        </div>
+        <div class="action-buttons">
+            <a href="tel:0562913250" class="button secondary">Appeler le Centre</a><a href="mailto:a.binois@cjml.fr" class="button secondary">Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary">Itinéraire</a>
+        </div>
+    </div>
+</body>
+</html>

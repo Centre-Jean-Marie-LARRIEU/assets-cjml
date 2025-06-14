@@ -1,0 +1,9 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Informatique;Tablette Educative;;;
+FN:Tablette Educative Informatique
+ORG:Centre Jean-Marie LARRIEU
+EMAIL;type=INTERNET;type=WORK;type=pref:edu.tab.info@cjml.fr
+TEL;type=WORK,voice:+33562913250
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD

@@ -1,0 +1,9 @@
+BEGIN:VCARD
+VERSION:3.0
+N:BOUABDELLI;Rahile;;;
+FN:Rahile BOUABDELLI
+ORG:Centre Jean-Marie LARRIEU
+EMAIL;type=INTERNET;type=WORK;type=pref:r.bouabdelli@cjml.fr
+TEL;type=WORK,voice:+33562913250
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD

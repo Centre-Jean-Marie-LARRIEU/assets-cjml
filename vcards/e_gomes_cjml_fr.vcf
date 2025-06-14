@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:GOMES;Elodie;;;
+FN:Elodie GOMES
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Service Social DITEP / IMP Echez / IMP Nestes
+EMAIL;type=INTERNET;type=WORK;type=pref:e.gomes@cjml.fr
+TEL;type=WORK,voice:+33562913250
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD

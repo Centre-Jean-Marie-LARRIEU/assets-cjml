@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:RAINA;Jean-Baptiste;;;
+FN:Jean-Baptiste RAINA
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Chef de Service DITEP
+EMAIL;type=INTERNET;type=WORK;type=pref:jb.raina@cjml.fr
+TEL;type=CELL,voice:+33672153528
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD

@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:LEFEVRE;Christelle;;;
+FN:Christelle LEFEVRE
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Comptabilité
+EMAIL;type=INTERNET;type=WORK;type=pref:c.lefevre@cjml.fr
+TEL;type=WORK,voice:+33562913259
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD

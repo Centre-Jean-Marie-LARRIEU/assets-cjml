@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:PALIS;Sandrine;;;
+FN:Sandrine PALIS
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Directrice
+EMAIL;type=INTERNET;type=WORK;type=pref:s.palis@cjml.fr
+TEL;type=CELL,voice:+33675628855
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD

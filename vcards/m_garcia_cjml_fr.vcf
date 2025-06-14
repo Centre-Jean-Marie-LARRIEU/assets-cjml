@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:GARCIA;Maxime;;;
+FN:Maxime GARCIA
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Responsable Technique
+EMAIL;type=INTERNET;type=WORK;type=pref:m.garcia@cjml.fr
+TEL;type=CELL,voice:+33618742732
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD

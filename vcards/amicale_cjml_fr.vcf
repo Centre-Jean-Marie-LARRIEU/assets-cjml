@@ -1,0 +1,9 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Centre Jean-Marie LARRIEU;Amicale du Personnel;;;
+FN:Amicale du Personnel Centre Jean-Marie LARRIEU
+ORG:Centre Jean-Marie LARRIEU
+EMAIL;type=INTERNET;type=WORK;type=pref:amicale@cjml.fr
+TEL;type=WORK,voice:+33562913250
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD

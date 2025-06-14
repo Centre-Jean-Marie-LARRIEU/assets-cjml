@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:DUCASSE;Marie-Jo;;;
+FN:Marie-Jo DUCASSE
+ORG:Centre Jean-Marie LARRIEU
+TITLE:Responsable Ressources Humaines
+EMAIL;type=INTERNET;type=WORK;type=pref:mj.ducasse@cjml.fr
+TEL;type=WORK,voice:+33562913252
+ADR;type=WORK:;;414 Rue du Layris;CAMPAN;;65710;France
+END:VCARD
