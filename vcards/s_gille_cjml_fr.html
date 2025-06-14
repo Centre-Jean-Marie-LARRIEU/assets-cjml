@@ -39,7 +39,7 @@
             width: 95%;
             box-sizing: border-box;
             position: relative;
-            padding-bottom: 100px;
+            padding-bottom: 100px; /* Espace pour les éléments du bas */
             overflow: hidden;
         }
         .logo {
@@ -136,18 +136,17 @@
             box-shadow: 0 4px 10px var(--shadow-medium);
         }
 
-        /* NOUVEAU POSITIONNEMENT : Bouton Partager en bas à droite, QR Code en bas à gauche */
-        /* Conteneur pour aligner les deux éléments (QR code et bouton Partager) sur la même ligne logique */
+        /* Conteneur commun pour les actions du bas (Partager et QR Code) */
         .bottom-actions-container {
             position: absolute;
-            bottom: 25px;
-            left: 25px;
-            right: 25px;
+            bottom: 25px; /* Du bas de la carte */
+            left: 25px; /* Aligné à gauche de la carte */
+            right: 25px; /* Aligné à droite de la carte */
             display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            width: calc(100% - 50px);
-            box-sizing: border-box;
+            justify-content: space-between; /* Espace entre le QR code et le bouton */
+            align-items: flex-end; /* Aligner les éléments en bas (pour le texte du QR code) */
+            width: calc(100% - 50px); /* Largeur de la carte moins le padding gauche/droite */
+            box-sizing: border-box; /* Inclure padding dans la largeur */
         }
 
         /* Conteneur du QR Code (en bas à gauche) */
@@ -157,9 +156,11 @@
             cursor: pointer;
             z-index: 1;
             transition: transform 0.2s ease;
-            flex-direction: row;
-            text-align: left;
-            width: auto;
+            flex-direction: row; /* Ordre normal : QR Code à gauche, texte à droite */
+            text-align: left; /* Pour aligner le texte à gauche */
+            width: auto; /* Ajuste la largeur à son contenu */
+            /* Flex-shrink pour permettre au QR code de se réduire si besoin */
+            flex-shrink: 0;
         }
         .qr-code-small-container:hover {
             transform: scale(1.03);
@@ -178,24 +179,29 @@
             color: var(--text-medium);
             line-height: 1.2;
             font-weight: 500;
-            white-space: nowrap;
+            white-space: nowrap; /* Empêche le texte de se casser sur plusieurs lignes */
         }
 
         /* Conteneur du bouton Partager (en bas à droite) */
         .share-button-container {
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: flex-end; /* Pousse le bouton à droite dans son conteneur flex */
+            /* Flex-grow pour permettre au bouton de prendre l'espace restant */
+            flex-grow: 1;
+            /* Pas de positionnement absolu ici, géré par .bottom-actions-container */
             position: static;
             bottom: auto;
             left: auto;
             right: auto;
+            /* Marge gauche pour un peu d'espace entre le QR et le bouton */
+            margin-left: 10px;
         }
         .share-main-button {
-            padding: 12px 20px;
+            padding: 12px 15px; /* Padding ajusté pour un bouton plus compact sur mobile */
             border-radius: 10px;
             font-weight: 500;
-            font-size: 1em;
+            font-size: 0.95em; /* Taille de police légèrement réduite pour tenir */
             text-decoration: none;
             display: inline-flex;
             justify-content: center;
@@ -206,7 +212,9 @@
             color: white !important;
             border: 1px solid var(--accent-orange);
             cursor: pointer;
-            white-space: nowrap;
+            white-space: nowrap; /* Empêche le texte de se casser */
+            max-width: 100%; /* S'assure que le bouton ne dépasse pas son conteneur */
+            box-sizing: border-box; /* Inclure padding dans la largeur */
         }
         .share-main-button:hover {
             opacity: 0.9;
@@ -323,28 +331,37 @@
                 left: 15px;
                 right: 15px;
                 bottom: 15px;
-                flex-direction: column; /* Revenir à la colonne sur petits écrans */
-                align-items: center; /* Centrer les deux gros blocs */
-                gap: 15px; /* Plus d'espace entre les deux gros blocs */
+                /* NE PAS changer en column, garder en row pour les garder côte à côte */
+                flex-direction: row; 
+                justify-content: space-between; /* Toujours espace entre eux */
+                align-items: flex-end; /* Aligner en bas si hauteurs différentes */
+                gap: 5px; /* Réduit le gap entre les deux éléments */
+                width: calc(100% - 30px); /* Largeur ajustée aux nouveaux paddings */
             }
-            .qr-code-small-container {
-                /* Sur mobile, on les veut centrés mais pas en `space-between` par rapport à l'autre */
-                justify-content: center; /* Centre le QR code et son texte */
+            /* Pas de position static pour les enfants, ils sont flex items */
+            .qr-code-small-container, .share-button-container {
+                /* Plus de position: static, ils sont des flex items */
+                position: relative; /* ou aucun */
+                width: auto; /* Laisser flexbox gérer la largeur */
+                /* Enlève justify-content: center; qui pourrait poser problème avec space-between */
+                justify-content: flex-start; /* ou center si besoin plus spécifique */
+                flex-grow: 0; /* Ne pas grandir de manière excessive */
             }
             .share-button-container {
-                /* Sur mobile, on les veut centrés */
-                justify-content: center; /* Centre le bouton Partager */
-            }
-            .qr-code-small-container, .share-button-container {
-                position: static; /* Annuler l'absolu */
-                width: 100%; /* Reprend toute la largeur disponible */
-                /* flex-direction: row; (déjà défini) */
-            }
-            .qr-code-text {
-                margin-right: 0;
+                margin-left: 5px; /* Petit espace entre le QR code et le bouton Partager */
             }
             .share-main-button {
-                width: 100%; /* Le bouton Partager prend toute la largeur */
+                width: auto; /* Laisser le bouton s'ajuster à son contenu */
+                padding: 10px 12px; /* Rendre le bouton plus petit pour qu'il tienne */
+                font-size: 0.85em; /* Taille de police plus petite */
+                white-space: nowrap; /* Indispensable pour éviter que le texte ne se coupe */
+            }
+            .qr-code-text {
+                font-size: 0.65em; /* Texte encore plus petit */
+            }
+            .qr-code-small {
+                width: 45px; /* Rendre le QR code un peu plus petit sur mobile */
+                height: 45px;
             }
         }
     </style>
@@ -467,11 +484,10 @@
                 console.log('Lien copié: ', linkToCopy);
             }).catch(err => {
                 console.error('Erreur lors de la copie du lien: ', err);
-                // Utiliser une zone de texte temporaire pour copier sur les anciens navigateurs
                 const textArea = document.createElement("textarea");
                 textArea.value = linkToCopy;
-                textArea.style.position = "fixed";  // Pour éviter le défilement
-                textArea.style.left = "-9999px"; // Hors de l'écran
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
                 document.body.appendChild(textArea);
                 textArea.focus();
                 textArea.select();
