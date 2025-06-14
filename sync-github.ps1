@@ -56,8 +56,8 @@ while ($true) {
             $commitMessage = Read-Host -Prompt "Veuillez entrer un message pour décrire vos modifications (ex: 'Mise à jour du logo')"
             if ([string]::IsNullOrWhiteSpace($commitMessage)) {
                 Write-Host "Le message de commit ne peut pas être vide. Opération annulée." -ForegroundColor Red
-                Read-Host -Prompt "Appuyez sur Entrée pour continuer..." # Ajout pour ne pas fermer directement
-                break # Retourne au menu
+                Read-Host -Prompt "Appuyez sur Entrée pour continuer..."
+                break
             }
 
             Write-Host "`n--- Préparation de la synchronisation vers GitHub ---" -ForegroundColor Cyan
@@ -86,13 +86,35 @@ while ($true) {
             Write-Host "3. Création du 'commit' avec le message : '$commitMessage'..." -ForegroundColor Green
             git commit -m "$commitMessage"
             if ($LASTEXITCODE -ne 0) {
-                Write-Host "Erreur lors de la création du commit. Assurez-vous qu'il y a des changements à committer." -ForegroundColor Red
+                # Si rien à committer, git commit renvoie un code de sortie non-zéro.
+                # Mais si des changements sont là, c'est une vraie erreur.
+                # On vérifie si c'est l'erreur "nothing to commit" pour ne pas paniquer l'utilisateur.
+                $commitOutput = git commit -m "$commitMessage" 2>&1
+                if ($commitOutput -like "*nothing to commit*") {
+                    Write-Host "Aucun changement à committer. Votre copie locale est à jour." -ForegroundColor Yellow
+                    # Pas besoin de faire un pull ou un push si rien n'a été committé localement.
+                    # On peut sortir ici ou demander si l'utilisateur veut quand même un pull.
+                    Read-Host -Prompt "Appuyez sur Entrée pour continuer..."
+                    break
+                } else {
+                    Write-Host "Erreur lors de la création du commit : $($commitOutput)" -ForegroundColor Red
+                    Read-Host -Prompt "Appuyez sur Entrée pour continuer..."
+                    break
+                }
+            }
+
+            # NOUVELLE ÉTAPE : Tirer les modifications distantes avant de pousser
+            Write-Host "4. Récupération des dernières modifications de GitHub (git pull)..." -ForegroundColor Green
+            git pull origin main
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "`n--- ERREUR : Échec de la récupération des modifications distantes (git pull) ! ---" -ForegroundColor Red
+                Write-Host "Vous pourriez avoir des conflits de fusion à résoudre manuellement, ou un problème de connexion." -ForegroundColor Red
                 Read-Host -Prompt "Appuyez sur Entrée pour continuer..."
                 break
             }
 
-            # 4. Envoi des modifications vers GitHub
-            Write-Host "4. Envoi des modifications vers GitHub (branche 'main')..." -ForegroundColor Green
+            # Ancienne étape 4, maintenant 5. Envoi des modifications vers GitHub
+            Write-Host "5. Envoi des modifications vers GitHub (branche 'main')..." -ForegroundColor Green
             git push -u origin main
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "`n--- Synchronisation terminée avec succès ! ---" -ForegroundColor Green
