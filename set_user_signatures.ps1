@@ -164,10 +164,10 @@ function Publish-FileToGitHub {
             $combinedBytes = $headerBytes + $FileContentBytes; $sha1 = New-Object System.Security.Cryptography.SHA1Managed
             $localSha = [System.BitConverter]::ToString($sha1.ComputeHash($combinedBytes)).Replace("-", "").ToLower()
             # DÉCOMMENTEZ LA LIGNE SUIVANTE POUR FORCER LA MISE À JOUR LORS DU DÉBOGAGE. RECOMMENTEZ APRÈS.
-            if ($DebugMode) { # Force pour tout si DebugMode est actif.
-                Write-Host "    - DEBUG : Forçage de la mise à jour pour $FileName" -ForegroundColor Cyan
-                $localSha = "FORCE_UPDATE_" + (Get-Random).ToString() 
-            }
+            # if ($DebugMode) { # Force pour tout si DebugMode est actif.
+                # Write-Host "    - DEBUG : Forçage de la mise à jour pour $FileName" -ForegroundColor Cyan
+                # $localSha = "FORCE_UPDATE_" + (Get-Random).ToString() 
+            # }
             
             if ($localSha -eq $sha) {
                 Write-Host "    - Contenu identique pour '$FileName' sur GitHub. Aucune mise à jour nécessaire." -ForegroundColor Green
