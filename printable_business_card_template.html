@@ -3,136 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carte de Visite - {{user_full_name}}</title>
+    <title>Carte de Visite - {{user_full_name}} (Imprimable)</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Styles pour l'impression (CMJN simulé, haute résolution, fonds perdus) */
-        /* IMPORTANT : Les dimensions ici sont pour un fichier à imprimer, incluant les fonds perdus si l'imprimeur les demande */
+        /* Variables de couleurs pour cohérence */
+        :root {
+            --primary-blue: #068FD0;
+            --accent-orange: #FCB041;
+            --text-dark: #333333;
+            --text-medium: #555555;
+            --background-light: #f8f9fa;
+        }
+
+        /* --- STYLES D'IMPRESSION (CRUCIAL) --- */
         @page {
-            size: 90mm 55mm; /* Format carte de visite standard (90x55mm avec fonds perdus). Vérifiez avec votre imprimeur. */
-            margin: 0; /* Pas de marges par défaut de l'imprimante */
+            size: 85mm 55mm; /* Format carte de visite final après coupe */
+            margin: 0; /* Supprime les marges par défaut de l'imprimante */
         }
         body {
-            width: 90mm;
-            height: 55mm;
+            font-family: 'Roboto', sans-serif;
+            color: var(--text-dark);
+            background-color: white; /* Toujours blanc pour l'impression */
             margin: 0;
             padding: 0;
-            font-family: 'Roboto', sans-serif; /* Assurez-vous que la police est bien embarquée ou une police système équivalente */
-            color: #333333; /* Couleur de texte sombre */
-            background-color: white; /* Fond blanc pour l'impression */
-            overflow: hidden; /* Empêche les barres de défilement */
-            position: relative;
+            overflow: hidden; /* Important pour éviter les scrollbars */
         }
 
-        .card-container {
+        /* Conteneur pour chaque face de la carte (Recto ou Verso) */
+        /* Ajout d'un fonds perdu de 3mm de chaque côté pour l'imprimeur (taille réelle du fichier : 91x61mm si fonds perdus) */
+        /* Si l'imprimeur veut 85x55mm DIRECTEMENT, retirez les 3mm du padding */
+        .card-face {
+            width: 85mm; 
+            height: 55mm; 
+            box-sizing: border-box; /* Padding inclus dans la taille */
+            padding: 4mm; /* Marge intérieure de sécurité pour le contenu (4mm du bord final) */
+            display: flex;
+            flex-direction: column; /* Laisser en colonne pour un contrôle vertical */
+            justify-content: flex-start; /* Aligner le contenu en haut par défaut */
+            align-items: center; /* Centrer horizontalement */
+            text-align: center;
+            page-break-after: always; /* Force une nouvelle page pour la face suivante (crée deux pages PDF) */
+            border: 0.25mm dashed #cccccc; /* Ajoute un contour en pointillé gris clair pour la découpe */
+        }
+        /* Pour la dernière page, éviter un saut de page vide */
+        .card-face:last-of-type {
+            page-break-after: avoid;
+        }
+
+        /* --- RECTO --- */
+        .recto-layout {
+            display: flex;
+            flex-direction: column; /* Empiler les blocs (logo, nom/titre, contacts) */
+            align-items: flex-start; /* **Aligner tout le contenu du recto à gauche** */
             width: 100%;
             height: 100%;
-            box-sizing: border-box;
-            padding: 5mm; /* Marge intérieure de sécurité (5mm du bord de la carte finie) */
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; /* Pour espacer le haut et le bas */
-            align-items: flex-start; /* Alignement par défaut à gauche */
+            justify-content: center; /* Centrer l'ensemble du contenu du recto verticalement */
+            /* Suppression du text-align: center; pour laisser flex-start gérer l'alignement */
         }
 
-        .header-section {
-            width: 100%;
+        .top-section-recto {
             display: flex;
-            flex-direction: column;
-            align-items: center; /* Centrer le logo et le nom */
-            margin-bottom: 5mm; /* Espace sous le titre */
+            align-items: center; /* Aligner le logo et le bloc nom/titre sur la même ligne */
+            margin-bottom: 2mm; /* **Réduit l'espace sous cette section** */
+            width: 100%;
+            justify-content: flex-start; /* **Aligner le logo + texte à gauche** */
         }
-        .logo {
-            max-width: 60mm; /* Taille du logo pour l'impression (ex: 6cm de large) */
-            height: auto;
-            margin-bottom: 3mm; /* Espace sous le logo */
+
+        .logo-recto-container {
+            flex-shrink: 0; /* Empêcher le logo de rétrécir */
+            width: 15mm; /* Largeur fixe pour le logo carré (divisé par 2, était 20mm) */
+            height: 15mm; /* Hauteur fixe pour le logo carré */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 3mm; /* Espace entre le logo et le texte */
+        }
+        .logo-recto {
+            max-width: 100%;
+            max-height: 100%;
             display: block;
         }
-        h1 {
-            color: #068FD0; /* Bleu primaire */
-            margin: 0;
-            font-size: 14pt; /* Taille de police pour l'impression */
-            font-weight: 700;
-            text-align: center;
+
+        .user-info-recto {
+            text-align: left; /* Aligner le texte de la personne à gauche de son conteneur */
+            flex-grow: 1; /* Permettre au texte de prendre l'espace restant */
+            line-height: 1.1;
         }
-        .title {
-            color: #FCB041; /* Orange accent */
-            margin-top: 1mm;
-            font-size: 9pt;
+        .user-name {
+            color: var(--primary-blue);
+            font-size: 10pt; /* Taille de police du nom réduite */
+            font-weight: 700;
+            margin: 0;
+            white-space: nowrap; /* Empêcher le nom de se couper */
+        }
+        .user-title {
+            color: var(--text-medium); 
+            font-size: 6.5pt; /* Taille de police du titre réduite */
             font-weight: 500;
-            text-align: center;
+            margin-top: 0.5mm; /* Très peu d'espace */
+            line-height: 1.1;
+            white-space: nowrap; 
         }
 
-        .contact-section {
+        .contact-details-recto {
             width: 100%;
-            font-size: 8pt; /* Taille de police pour l'impression */
+            font-size: 6.5pt; /* Taille de police pour les détails réduite */
             line-height: 1.3;
-            margin-top: auto; /* Pousse cette section vers le bas si le contenu du header est court */
-            flex-grow: 1; /* Permet à cette section de prendre l'espace disponible */
+            margin-top: 2mm; /* **Réduit l'espace au-dessus du bloc de contact** */
+            text-align: left; /* **Aligner les lignes de contact à gauche** */
+        }
+        .contact-details-recto p {
+            margin: 0;
+            padding: 0;
+            margin-bottom: 0.5mm; 
+        }
+        .contact-details-recto .label {
+            font-weight: 700;
+            color: var(--primary-blue);
+            display: inline;
+            margin-right: 1mm;
+        }
+        .contact-details-recto a {
+            color: var(--text-dark);
+            text-decoration: none;
+        }
+
+        /* --- VERSO --- */
+        .verso-content {
             display: flex;
             flex-direction: column;
-            justify-content: flex-end; /* Aligne le contenu en bas de la section contact */
-        }
-        .contact-item {
-            margin-bottom: 1mm; /* Petit espacement entre les lignes de contact */
-            text-align: left;
-        }
-        .contact-item:last-child {
-            margin-bottom: 0;
-        }
-        .contact-item .label {
-            font-weight: 700;
-            color: #068FD0; /* Bleu primaire */
-            display: inline; /* Rendre le label en ligne pour qu'il soit suivi par le contenu */
-            margin-right: 1mm; /* Petit espace entre label et contenu */
-        }
-        .contact-item a {
-            color: #333333; /* Couleur de texte normale */
-            text-decoration: none; /* Pas de soulignement par défaut */
-        }
-
-        .qr-code-section {
+            align-items: center;
+            justify-content: center;
+            height: 100%;
             width: 100%;
+        }
+        .qr-code-print-container {
+            width: 35mm; 
+            height: 35mm;
+            border: 1mm solid var(--primary-blue);
+            box-sizing: border-box;
             display: flex;
-            justify-content: flex-end; /* Aligner à droite */
-            align-items: center; /* Centrer verticalement */
-            margin-top: 3mm; /* Marge au-dessus du QR code */
+            align-items: center;
+            justify-content: center;
         }
         .qr-code-print {
-            width: 25mm; /* Taille physique pour l'impression (ex: 2.5cm) */
-            height: 25mm;
-            border: 1mm solid #068FD0; /* Bordure bleue pour le QR code */
-            box-sizing: border-box; /* Inclure la bordure dans la taille */
+            max-width: 100%;
+            max-height: 100%;
             display: block;
         }
         .qr-code-text-print {
-            font-size: 7pt;
-            color: #555555;
-            margin-right: 2mm; /* Espace entre texte et QR code */
-            text-align: right;
+            font-size: 8pt; 
+            color: var(--text-medium);
+            text-align: center;
             line-height: 1.2;
+            font-weight: 500;
+            margin-top: 2mm; 
         }
     </style>
 </head>
 <body>
-    <div class="card-container">
-        <div class="header-section">
-            <img src="{{digital_card_logo_url_for_print}}" alt="Logo" class="logo">
-            <h1>{{user_full_name}}</h1>
-            <p class="title">{{user_title}}</p>
-        </div>
+    <div class="card-face">
+        <div class="recto-layout">
+            <div class="top-section-recto">
+                <div class="logo-recto-container">
+                    <img src="{{digital_card_logo_url_for_print}}" alt="Logo" class="logo-recto">
+                </div>
+                <div class="user-info-recto">
+                    <p class="user-name">{{user_full_name}}</p>
+                    <p class="user-title">{{user_title}}</p>
+                </div>
+            </div>
 
-        <div class="contact-section">
-            <p class="contact-item"><span class="label">Ligne directe :</span> {{phone_work_display}}</p>
-            <p class="contact-item"><span class="label">Mobile :</span> {{phone_mobile_display}}</p>
-            <p class="contact-item"><span class="label">Email :</span> <a href="mailto:{{primary_email_raw}}">{{primary_email_raw}}</a></p>
-            <p class="contact-item"><span class="label">{{address_label}} :</span> {{address_text_print}}</p>
-            <p class="contact-item"><span class="label">Site Web :</span> <a href="{{website_url}}">{{website_display_url}}</a></p>
+            <div class="contact-details-recto">
+                <p>
+                    <span class="label">Ligne directe :</span> {{phone_work_display}}
+                </p>
+                <p>
+                    <span class="label">Mobile :</span> {{phone_mobile_display}}
+                </p>
+                <p>
+                    <span class="label">Email :</span> <a href="mailto:{{primary_email_raw}}">{{primary_email_raw}}</a>
+                </p>
+                <p>
+                    <span class="label">{{address_label}} :</span> {{address_text_print}}
+                </p>
+                <p>
+                    <span class="label">Site Web :</span> <a href="{{website_url}}" target="_blank">{{website_display_url}}</a>
+                </p>
+            </div>
         </div>
+    </div>
 
-        <div class="qr-code-section">
-            <span class="qr-code-text-print">Scannez<br>ma carte</span>
-            <img src="{{qrcode_print_url}}" alt="QR Code" class="qr-code-print">
+    <div class="card-face">
+        <div class="verso-content">
+            <div class="qr-code-print-container">
+                <img src="{{qrcode_print_url}}" alt="QR Code" class="qr-code-print">
+            </div>
+            <p class="qr-code-text-print">
+                Scannez-moi pour ma carte de visite numérique interactive<br>et mes coordonnées complètes.
+            </p>
         </div>
     </div>
 </body>
