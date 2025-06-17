@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v47.05 - Ajout Adresse en fin de contact_list_html)
+﻿# set_user_signatures.ps1 (v47.08 - Ajout final de la logique de génération PDF)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -6,12 +6,13 @@ param(
     [switch]$AddDigitalCard,
     [switch]$GeneratePrintQr,
     [switch]$GeneratePrintableCard,
+    [switch]$GeneratePdfCard, # NOUVEAU COMMUTATEUR
     [switch]$ShowHelp,
     [switch]$DebugMode
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
-$script:ScriptVersion = "v47.05 - Address Line on Printable Card"
+$script:ScriptVersion = "v47.08 - Final PDF Generation Logic"
 Write-Host "Démarrage du script : set_user_signatures.ps1 ($script:ScriptVersion)" -ForegroundColor Green
 
 if ($ShowHelp) {
@@ -24,7 +25,7 @@ SYNOPSIS:
     Ce script a été optimisé pour la concision et la clarté.
 
 SYNTAXE:
-    .\set_user_signatures.ps1 [-SingleUserEmail <string>] [-IncludeSuspended] [-AddDigitalCard] [-GeneratePrintQr] [-GeneratePrintableCard] [-ShowHelp] [-DebugMode]
+    .\set_user_signatures.ps1 [-SingleUserEmail <string>] [-IncludeSuspended] [-AddDigitalCard] [-GeneratePrintQr] [-GeneratePrintableCard] [-GeneratePdfCard] [-ShowHelp] [-DebugMode]
 
 DESCRIPTION:
     Ce script automatise la mise à jour des signatures Gmail via GAM. Il est optimisé pour ne pas effectuer de mises à jour inutiles.
@@ -55,6 +56,10 @@ PARAMÈTRES:
         Commutateur. Si présent, génère un fichier HTML de carte de visite optimisé pour l'impression locale.
         Ce fichier est destiné à être ouvert dans un navigateur puis "Imprimé au format PDF".
 
+    -GeneratePdfCard
+        Commutateur. Si présent, génère des fichiers PDF de cartes de visite imprimables (recto-verso) en utilisant wkhtmltopdf.
+        Nécessite wkhtmltopdf installé et accessible via PATH.
+
     -ShowHelp
         Affiche ce message d'aide et quitte le script.
 
@@ -77,9 +82,12 @@ EXEMPLES:
     # Nécessite que le QR code imprimable soit déjà généré ou générable.
     .\set_user_signatures.ps1 -SingleUserEmail "s.gille@cjml.fr" -GeneratePrintableCard
 
-    # Met à jour les signatures, les cartes de visite ET génère des QR Codes/Cartes imprimables pour un utilisateur
+    # Génère une carte de visite PDF pour un utilisateur (recto-verso sur 2 pages du PDF)
+    .\set_user_signatures.ps1 -SingleUserEmail "s.gille@cjml.fr" -GeneratePdfCard
+
+    # Met à jour les signatures, les cartes de visite ET génère des QR Codes/Cartes imprimables/PDF pour un utilisateur
     # Note: L'ordre des paramètres n'a pas d'importance, mais -DebugMode doit être à la fin si vous voulez un affichage complet.
-    .\set_user_signatures.ps1 -SingleUserEmail "s.gille@cjml.fr" -AddDigitalCard -GeneratePrintQr -GeneratePrintableCard -DebugMode
+    .\set_user_signatures.ps1 -SingleUserEmail "s.gille@cjml.fr" -AddDigitalCard -GeneratePrintQr -GeneratePrintableCard -GeneratePdfCard -DebugMode
 "@
     Write-Host $helpText
     return
@@ -94,10 +102,11 @@ $config = @{
     PrintableCardTemplateName = "printable_business_card_template.html"
     PrintQrOutputFolder   = "C:\GAMWork\PrintQrCodes"
     PrintableCardOutputFolder = "C:\GAMWork\PrintableCards"
+    PdfCardOutputFolder   = "C:\GAMWork\PdfCards" # NOUVEAU DOSSIER POUR LES PDF
 
     SignatureLogoUrl      = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png"
     DigitalCardLogoUrl    = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-horizontal.jpg"
-    PrintLogoUrl          = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png"
+    PrintLogoUrl          = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png" # Logo à utiliser pour la carte imprimable
 
     OrgName               = "Centre Jean-Marie LARRIEU"
     DefaultPhoneNumberRaw = "+33562913250"
@@ -116,6 +125,8 @@ $config = @{
         Blue  = [byte[]](6, 143, 208)
         White = [byte[]](255, 255, 255)
     }
+
+    WkhtmltopdfPath       = "wkhtmltopdf.exe" # Assurez-vous que wkhtmltopdf est dans votre PATH, ou spécifiez le chemin complet ici
 }
 
 # Calculs de chemins et URLs basés sur la configuration
@@ -517,22 +528,25 @@ foreach ($user in $usersToProcess) {
 "@
     }
     # Standard (s'il n'est pas la ligne principale et qu'il est nécessaire d'être affiché)
-    # Cas 1: Mobile est principal, mais pas de work phone -> ajouter le standard.
-    # Cas 2: Standard est principal (aucun work/mobile de GAM). Cette ligne ne s'exécutera pas, c'est déjà RawPrimaryDisplayPhone.
-    if ($phoneData.UsedDefaultPhoneAsPrimary -eq $false -and $phoneData.HasMobilePhoneFromGam -eq $true -and $phoneData.HasWorkPhoneFromGam -eq $false) {
-        # Assurer que le standard n'est pas déjà le mobile
-        if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone) {
+    # Condition: Mobile est principal, mais pas de work phone -> ajouter le standard.
+    # OU Standard est principal (aucun work/mobile de GAM). Cette ligne ne s'exécutera pas, c'est déjà RawPrimaryDisplayPhone.
+    if ( ($phoneData.UsedDefaultPhoneAsPrimary -eq $false -and $phoneData.HasMobilePhoneFromGam -eq $true -and $phoneData.HasWorkPhoneFromGam -eq $false) -or `
+         ($phoneData.UsedDefaultPhoneAsPrimary -eq $true) )
+    {
+        # S'assurer que le standard n'est pas déjà le mobile ou le work phone
+        if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone -and $config.DefaultPhoneNumberRaw -ne $phoneData.RawWorkPhone) {
             $cardContactTextHtmlForDigitalCard += @"
 <div class="contact-item"><span class="label">Téléphone (Centre)</span><a href="tel:$($config.DefaultPhoneNumberRaw)">$($config.DefaultPhoneNumberDisplay)</a></div>
 "@
         }
     }
 
-
+    # Email
     $cardContactTextHtmlForDigitalCard += @"
 <div class="contact-item"><span class="label">Email</span><a href="mailto:$primaryEmail_val">$primaryEmail_val</a></div>
 "@
 
+    # Site Web
     if (-not [string]::IsNullOrEmpty($config.WebsiteUrl)) {
         $cardContactTextHtmlForDigitalCard += @"
 <div class="contact-item">
@@ -541,7 +555,7 @@ foreach ($user in $usersToProcess) {
 </div>
 "@
     }
-    # NOUVEAU: Ajout de la ligne d'adresse à la fin de contact_list_html
+    # Adresse (toujours en dernière position)
     $cardContactTextHtmlForDigitalCard += @"
 <div class="contact-item">
     <span class="label">$addressLabelForCard</span>
@@ -565,7 +579,7 @@ foreach ($user in $usersToProcess) {
         } elseif ($phoneData.UsedDefaultPhoneAsPrimary) {
             $buttonLabel = "Appeler le Centre"
         }
-        # Ajouter ce bouton SEULEMENT si son numéro n'est PAS un doublon d'un bouton mobile
+        # Ajouter ce bouton SEULEMENT si son numéro n'est PAS un doublon d'un bouton mobile (si le mobile est déjà géré séparément)
         if (-not [string]::IsNullOrEmpty($buttonLabel) -and ($phoneData.RawPrimaryDialPhone -ne $phoneData.RawMobilePhone)) {
              $actionButtonsHtmlForDigitalCard += @"
 <a href="tel:$($phoneData.RawPrimaryDialPhone)" class="button secondary">$buttonLabel</a>
@@ -593,8 +607,8 @@ foreach ($user in $usersToProcess) {
     $downloaderPageUrl_final = "$($githubConfig.PagesBaseUrl)/$($githubConfig.VcardFolderPath)/$downloaderPageFileName"
 
     # --- Génération des QR Codes et Cartes imprimables (locales) ---
-    if ($GeneratePrintQr -or $GeneratePrintableCard) {
-        $qrPrintFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_').png"
+    if ($GeneratePrintQr -or $GeneratePrintableCard -or $GeneratePdfCard) { # Inclut GeneratePdfCard ici
+        $qrPrintFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_')_print_qrcode.png"
         Write-Host "  - Génération du QR Code pour impression : '$qrPrintFileName' dans '$($config.PrintQrOutputFolder)'..." -ForegroundColor DarkYellow
         $printQrSuccess = Generate-QrCodeFile `
             -QrDataUrl $downloaderPageUrl_final `
@@ -603,10 +617,33 @@ foreach ($user in $usersToProcess) {
             -QrCodeColors $config.QrCodeColors `
             -PixelsPerModule 100
         if (-not $printQrSuccess) {
-            Write-Warning "La génération du QR Code imprimable a échoué. La carte imprimable pourrait être incomplète."
+            Write-Warning "La génération du QR Code imprimable a échoué. La carte imprimable/PDF pourrait être incomplète."
         }
     }
 
+    # Préparer le contenu HTML pour la carte imprimable/PDF
+    $printableCardTemplateContent = Get-TemplateContent($config.PrintableCardTemplatePath)
+
+    # --- NOUVEAU: Remplacements utilisant une hashtable pour la carte imprimable / PDF ---
+    $printableCardReplacements = @{
+        '{{digital_card_logo_url_for_print}}' = $config.PrintLogoUrl
+        '{{user_full_name}}'                  = "$givenName_val $familyName_val"
+        '{{user_title}}'                      = $title_val
+        '{{contact_list_html}}'               = $cardContactTextHtmlForDigitalCard # <- UTILISE LA MÊME VARIABLE ICI
+        '{{address_label}}'                   = $addressLabelForCard
+        '{{address_text_print}}'              = ($address_val -replace "`r`n", "<br>") # Fallback si pas en contact_list_html
+        '{{website_url}}'                     = $config.WebsiteUrl
+        '{{website_display_url}}'             = $config.WebsiteDisplayUrl
+        '{{qrcode_print_url}}'                = (Join-Path -Path $config.PrintQrOutputFolder -ChildPath $qrPrintFileName)
+    }
+
+    $finalPrintableCardHtml = $printableCardTemplateContent
+    foreach ($key in $printableCardReplacements.Keys) {
+        $finalPrintableCardHtml = $finalPrintableCardHtml -replace $key, $printableCardReplacements[$key]
+    }
+    # --- FIN NOUVEAU: Remplacements utilisant une hashtable pour la carte imprimable / PDF ---
+
+    # Génération du fichier HTML pour la carte imprimable
     if ($GeneratePrintableCard) {
         $printableCardFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_')_print_card.html"
         Write-Host "  - Génération de la carte de visite HTML imprimable : '$printableCardFileName' dans '$($config.PrintableCardOutputFolder)'..." -ForegroundColor DarkYellow
@@ -616,39 +653,69 @@ foreach ($user in $usersToProcess) {
         }
 
         try {
-            $cardTemplateContent = Get-TemplateContent($config.PrintableCardTemplatePath)
-
-            # --- NOUVEAU: Remplacements utilisant une hashtable pour la carte imprimable ---
-            $printableCardReplacements = @{
-                '{{digital_card_logo_url_for_print}}' = $config.PrintLogoUrl
-                '{{user_full_name}}'                  = "$givenName_val $familyName_val"
-                '{{user_title}}'                      = $title_val
-                '{{contact_list_html}}'               = $cardContactTextHtmlForDigitalCard # <- UTILISE LA MÊME VARIABLE QUE LA CARTE NUMÉRIQUE
-                '{{address_label}}'                   = $addressLabelForCard
-                '{{address_text_print}}'              = ($address_val -replace "`r`n", "<br>") # Maintenu au cas où ce soit utilisé ailleurs ou pour le débogage
-                '{{website_url}}'                     = $config.WebsiteUrl
-                '{{website_display_url}}'             = $config.WebsiteDisplayUrl
-                '{{qrcode_print_url}}'                = (Join-Path -Path $config.PrintQrOutputFolder -ChildPath $qrPrintFileName)
-                # Remplacez les anciennes variables individuelles par contact_list_html dans le template HTML de la carte imprimable.
-                # '{{phone_work_display}}' est désormais géré à l'intérieur de contact_list_html.
-                # '{{phone_mobile_display}}' est désormais géré à l'intérieur de contact_list_html.
-                # Les anciennes lignes dans le template printable_business_card_template.html qui utilisaient ces variables
-                # doivent être remplacées par le placeholder {{contact_list_html}}.
-            }
-
-            $finalCardHtml = $cardTemplateContent
-            foreach ($key in $printableCardReplacements.Keys) {
-                $finalCardHtml = $finalCardHtml -replace $key, $printableCardReplacements[$key]
-            }
-            # --- FIN NOUVEAU: Remplacements utilisant une hashtable pour la carte imprimable ---
-
             $outputPath = Join-Path -Path $config.PrintableCardOutputFolder -ChildPath $printableCardFileName
-            [System.IO.File]::WriteAllText($outputPath, $finalCardHtml, [System.Text.Encoding]::UTF8)
-            Write-Host "    Carte de visite imprimable générée : $outputPath" -ForegroundColor Green
+            [System.IO.File]::WriteAllText($outputPath, $finalPrintableCardHtml, [System.Text.Encoding]::UTF8)
+            Write-Host "    Carte de visite HTML imprimable générée : $outputPath" -ForegroundColor Green
         } catch {
-            Write-Error "Échec de la génération de la carte de visite imprimable pour '$printableCardFileName'. Erreur: $($_.Exception.Message)"
+            Write-Error "Échec de la génération du carte de visite HTML imprimable pour '$printableCardFileName'. Erreur: $($_.Exception.Message)"
         }
     }
+
+    # NOUVEAU BLOC : Génération PDF de la carte imprimable
+    if ($GeneratePdfCard) {
+        $pdfFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_')_card.pdf"
+        $pdfOutputPath = Join-Path -Path $config.PdfCardOutputFolder -ChildPath $pdfFileName
+        $tempHtmlForPdfPath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "$($pdfFileName).html"
+
+        Write-Host "  - Génération PDF de la carte de visite pour : '$primaryEmail_val'..." -ForegroundColor DarkYellow
+
+        if (-not (Test-Path $config.PdfCardOutputFolder)) {
+            New-Item -ItemType Directory -Path $config.PdfCardOutputFolder -Force | Out-Null
+        }
+
+        try {
+            # Écrire le HTML final dans un fichier temporaire pour wkhtmltopdf
+            [System.IO.File]::WriteAllText($tempHtmlForPdfPath, $finalPrintableCardHtml, [System.Text.Encoding]::UTF8)
+
+            # Options wkhtmltopdf pour une carte de visite 85x55mm
+            # --page-width et --page-height pour la taille de la carte
+            # --margin-top, --margin-bottom, --margin-left, --margin-right pour s'assurer que le contenu respecte le padding HTML
+            # --enable-local-file-access pour que wkhtmltopdf puisse charger les images locales si besoin (comme le QR code imprimable)
+            # Pour le recto-verso, wkhtmltopdf traitera chaque page HTML comme une page PDF séparée.
+            # Le template HTML actuel contient 2 divs .card-face, chacun étant une page PDF.
+            $wkhtmltopdfArgs = @(
+                '--page-width', '85mm',
+                '--page-height', '55mm',
+                '--margin-top', '0mm', # Les marges sont déjà gérées par le padding du body HTML
+                '--margin-bottom', '0mm',
+                '--margin-left', '0mm',
+                '--margin-right', '0mm',
+                '--no-stop-slow-scripts', # Utile si des scripts JS lents posent problème (bien que pas dans ce template)
+                '--enable-local-file-access', # Permet de lire les images locales (QR code)
+                '--print-media-type', # Utilise les styles @media print
+                '--dpi', '300', # Haute résolution pour l'impression
+                $tempHtmlForPdfPath,
+                $pdfOutputPath
+            )
+
+            Write-Host "    Appel wkhtmltopdf : $($config.WkhtmltopdfPath) $($wkhtmltopdfArgs -join ' ')" -ForegroundColor DarkGray
+            
+            # Exécuter wkhtmltopdf
+            $wkhtmltopdfResult = & $config.WkhtmltopdfPath $wkhtmltopdfArgs 2>&1
+            
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "    Carte de visite PDF générée : $pdfOutputPath" -ForegroundColor Green
+            } else {
+                Write-Error "Échec de la génération du PDF pour '$pdfFileName'. Erreur: $($wkhtmltopdfResult | Out-String)"
+            }
+
+        } catch {
+            Write-Error "Erreur lors de l'appel de wkhtmltopdf pour '$pdfFileName'. Erreur: $($_.Exception.Message)"
+        } finally {
+            Remove-Item -Path $tempHtmlForPdfPath -ErrorAction SilentlyContinue
+        }
+    }
+
 
     # --- Logique pour la Carte de Visite Numérique (et son QR Code) vers GitHub ---
     $qrCodeImageUrl_raw_for_digital_card = ""
@@ -809,7 +876,9 @@ foreach ($user in $usersToProcess) {
     {
         # S'assurer que le standard n'est pas déjà le mobile
         if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone) {
-            $phoneBlockHtmlForSignatureFinal += "Téléphone (Centre) : <a href=`"tel:$($config.DefaultPhoneNumberRaw)`" style=`"$linkStyleSignature`">$($config.DefaultPhoneNumberDisplay)</a><br>"
+            #Bug Style $linkStyleSignature
+			$phoneBlockHtmlForSignatureFinal += "Téléphone (Centre) : <a href=`"tel:$($config.DefaultPhoneNumberRaw)`" style=`"color: #555555; text-decoration: underline;`">$($config.DefaultPhoneNumberDisplay)</a><br>"
+			#$phoneBlockHtmlForSignatureFinal += "Téléphone (Centre) : <a href=`"tel:$($config.DefaultPhoneNumberRaw)`" style=`"$linkStyleSignature`">$($config.DefaultPhoneNumberDisplay)</a><br>"
         }
     }
 
