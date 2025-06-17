@@ -13,6 +13,7 @@
             --text-dark: #333333;
             --text-medium: #555555;
             --background-light: #f8f9fa;
+            --border-light: #EAEAEA; /* Ajouté pour le trait gris */
         }
 
         /* --- STYLES D'IMPRESSION (CRUCIAL) --- */
@@ -43,7 +44,7 @@
             align-items: center; /* Centrer horizontalement */
             text-align: center;
             page-break-after: always; /* Force une nouvelle page pour la face suivante (crée deux pages PDF) */
-            border: 0.25mm dashed #cccccc; /* Ajoute un contour en pointillé gris clair pour la découpe */
+            /* border: 0.25mm dashed #cccccc;*/ /* Ajoute un contour en pointillé gris clair pour la découpe */
         }
         /* Pour la dernière page, éviter un saut de page vide */
         .card-face:last-of-type {
@@ -54,29 +55,34 @@
         .recto-layout {
             display: flex;
             flex-direction: column; /* Empiler les blocs (logo, nom/titre, contacts) */
-            align-items: flex-start; /* **Aligner tout le contenu du recto à gauche** */
+            align-items: flex-start; /* Aligner tout le contenu du recto à gauche par défaut */
             width: 100%;
             height: 100%;
             justify-content: center; /* Centrer l'ensemble du contenu du recto verticalement */
-            /* Suppression du text-align: center; pour laisser flex-start gérer l'alignement */
         }
 
         .top-section-recto {
             display: flex;
             align-items: center; /* Aligner le logo et le bloc nom/titre sur la même ligne */
-            margin-bottom: 2mm; /* **Réduit l'espace sous cette section** */
+            margin-bottom: 2mm; /* Réduit l'espace sous cette section */
             width: 100%;
-            justify-content: flex-start; /* **Aligner le logo + texte à gauche** */
+            /* MODIFIÉ: Pousse le logo à gauche et le texte à droite */
+            justify-content: space-between; /* Espace entre les éléments */
+            border-bottom: 0.5mm solid var(--border-light); /* Trait gris léger */
+            padding-bottom: 2mm; /* Espace entre le contenu et le trait */
         }
 
         .logo-recto-container {
             flex-shrink: 0; /* Empêcher le logo de rétrécir */
-            width: 15mm; /* Largeur fixe pour le logo carré (divisé par 2, était 20mm) */
-            height: 15mm; /* Hauteur fixe pour le logo carré */
+            width: 25mm; /* Largeur fixe pour le logo carré */
+            height: 25mm; /* Hauteur fixe pour le logo carré */
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 3mm; /* Espace entre le logo et le texte */
+            /* MODIFIÉ: Pas de marge gauche, le justify-content: space-between s'en charge */
+            margin-left: 0;
+            margin-right: 3mm; /* Espace à droite du logo s'il y a du texte à sa droite */
+            order: 1; /* Place le logo en premier (à gauche) */
         }
         .logo-recto {
             max-width: 100%;
@@ -85,32 +91,37 @@
         }
 
         .user-info-recto {
-            text-align: left; /* Aligner le texte de la personne à gauche de son conteneur */
+            /* MODIFIÉ: Aligner le texte à gauche, car il est maintenant à droite du logo */
+            text-align: right; /* Aligner le texte de la personne à DROITE dans son bloc */
             flex-grow: 1; /* Permettre au texte de prendre l'espace restant */
             line-height: 1.1;
+            order: 2; /* Place le texte en second (à droite) */
         }
         .user-name {
             color: var(--primary-blue);
-            font-size: 10pt; /* Taille de police du nom réduite */
+            font-size: 16pt; /* Taille de police du nom augmentée */
             font-weight: 700;
             margin: 0;
             white-space: nowrap; /* Empêcher le nom de se couper */
         }
         .user-title {
-            color: var(--text-medium); 
-            font-size: 6.5pt; /* Taille de police du titre réduite */
+            color: var(--accent-orange); /* Couleur accent-orange pour le titre */
+            font-size: 10pt; /* Nouvelle taille de police : 10pt */
             font-weight: 500;
             margin-top: 0.5mm; /* Très peu d'espace */
             line-height: 1.1;
-            white-space: nowrap; 
+            white-space: normal; /* Permet au titre de revenir à la ligne */
+            word-wrap: break-word; /* Assure que les mots longs se coupent si nécessaire */
         }
 
         .contact-details-recto {
             width: 100%;
-            font-size: 6.5pt; /* Taille de police pour les détails réduite */
+            font-size: 8pt; /* **Nouvelle taille de police pour les détails : 8pt** */
             line-height: 1.3;
-            margin-top: 2mm; /* **Réduit l'espace au-dessus du bloc de contact** */
+            margin-top: 2mm; /* Réduit l'espace au-dessus du bloc de contact */
             text-align: left; /* **Aligner les lignes de contact à gauche** */
+            border-left: 1.5mm solid var(--primary-blue); /* Trait bleu à gauche */
+            padding-left: 2mm; /* Espacement après le trait */
         }
         .contact-details-recto p {
             margin: 0;
@@ -121,7 +132,8 @@
             font-weight: 700;
             color: var(--primary-blue);
             display: inline;
-            margin-right: 1mm;
+            margin-right: 1mm; /* **Espace à droite du label pour alignement gauche** */
+            margin-left: 0; /* Assurez-vous qu'il n'y a pas de marge à gauche résiduelle */
         }
         .contact-details-recto a {
             color: var(--text-dark);

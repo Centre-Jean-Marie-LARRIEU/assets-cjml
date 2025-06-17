@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v46.16 - Correction Style Téléphone Standard Signature)
+﻿# set_user_signatures.ps1 (v47.02 - Carte Imprimable Retravaillée)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -11,7 +11,7 @@ param(
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
-$script:ScriptVersion = "v46.16 - Final Style Fix"
+$script:ScriptVersion = "v47.02 - Carte Imprimable Retravaillée"
 Write-Host "Démarrage du script : set_user_signatures.ps1 ($script:ScriptVersion)" -ForegroundColor Green
 
 if ($ShowHelp) {
