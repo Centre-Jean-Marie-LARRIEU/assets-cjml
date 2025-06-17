@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v47.02 - Carte Imprimable Retravaillée)
+﻿# set_user_signatures.ps1 (v47.05 - Ajout Adresse en fin de contact_list_html)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -11,7 +11,7 @@ param(
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
-$script:ScriptVersion = "v47.02 - Carte Imprimable Retravaillée"
+$script:ScriptVersion = "v47.05 - Address Line on Printable Card"
 Write-Host "Démarrage du script : set_user_signatures.ps1 ($script:ScriptVersion)" -ForegroundColor Green
 
 if ($ShowHelp) {
@@ -520,7 +520,7 @@ foreach ($user in $usersToProcess) {
     # Cas 1: Mobile est principal, mais pas de work phone -> ajouter le standard.
     # Cas 2: Standard est principal (aucun work/mobile de GAM). Cette ligne ne s'exécutera pas, c'est déjà RawPrimaryDisplayPhone.
     if ($phoneData.UsedDefaultPhoneAsPrimary -eq $false -and $phoneData.HasMobilePhoneFromGam -eq $true -and $phoneData.HasWorkPhoneFromGam -eq $false) {
-        # Assurez-vous que le standard n'est pas déjà le mobile
+        # Assurer que le standard n'est pas déjà le mobile
         if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone) {
             $cardContactTextHtmlForDigitalCard += @"
 <div class="contact-item"><span class="label">Téléphone (Centre)</span><a href="tel:$($config.DefaultPhoneNumberRaw)">$($config.DefaultPhoneNumberDisplay)</a></div>
@@ -541,6 +541,14 @@ foreach ($user in $usersToProcess) {
 </div>
 "@
     }
+    # NOUVEAU: Ajout de la ligne d'adresse à la fin de contact_list_html
+    $cardContactTextHtmlForDigitalCard += @"
+<div class="contact-item">
+    <span class="label">$addressLabelForCard</span>
+    <a href="https://www.google.com/maps/search/?api=1&query=$([System.Net.WebUtility]::UrlEncode($addressForSignature))" target="_blank" rel="noopener noreferrer">$addressForSignature</a>
+</div>
+"@
+
 
     $actionButtonsHtmlForDigitalCard = ""
     # Bouton Appeler (Mobile) - Seulement si un mobile GAM est présent
@@ -586,7 +594,7 @@ foreach ($user in $usersToProcess) {
 
     # --- Génération des QR Codes et Cartes imprimables (locales) ---
     if ($GeneratePrintQr -or $GeneratePrintableCard) {
-        $qrPrintFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_')_print_qrcode.png"
+        $qrPrintFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_').png"
         Write-Host "  - Génération du QR Code pour impression : '$qrPrintFileName' dans '$($config.PrintQrOutputFolder)'..." -ForegroundColor DarkYellow
         $printQrSuccess = Generate-QrCodeFile `
             -QrDataUrl $downloaderPageUrl_final `
@@ -610,18 +618,29 @@ foreach ($user in $usersToProcess) {
         try {
             $cardTemplateContent = Get-TemplateContent($config.PrintableCardTemplatePath)
 
+            # --- NOUVEAU: Remplacements utilisant une hashtable pour la carte imprimable ---
+            $printableCardReplacements = @{
+                '{{digital_card_logo_url_for_print}}' = $config.PrintLogoUrl
+                '{{user_full_name}}'                  = "$givenName_val $familyName_val"
+                '{{user_title}}'                      = $title_val
+                '{{contact_list_html}}'               = $cardContactTextHtmlForDigitalCard # <- UTILISE LA MÊME VARIABLE QUE LA CARTE NUMÉRIQUE
+                '{{address_label}}'                   = $addressLabelForCard
+                '{{address_text_print}}'              = ($address_val -replace "`r`n", "<br>") # Maintenu au cas où ce soit utilisé ailleurs ou pour le débogage
+                '{{website_url}}'                     = $config.WebsiteUrl
+                '{{website_display_url}}'             = $config.WebsiteDisplayUrl
+                '{{qrcode_print_url}}'                = (Join-Path -Path $config.PrintQrOutputFolder -ChildPath $qrPrintFileName)
+                # Remplacez les anciennes variables individuelles par contact_list_html dans le template HTML de la carte imprimable.
+                # '{{phone_work_display}}' est désormais géré à l'intérieur de contact_list_html.
+                # '{{phone_mobile_display}}' est désormais géré à l'intérieur de contact_list_html.
+                # Les anciennes lignes dans le template printable_business_card_template.html qui utilisaient ces variables
+                # doivent être remplacées par le placeholder {{contact_list_html}}.
+            }
+
             $finalCardHtml = $cardTemplateContent
-            $finalCardHtml = $finalCardHtml -replace '\{\{digital_card_logo_url_for_print\}\}', $config.PrintLogoUrl
-            $finalCardHtml = $finalCardHtml -replace '\{\{user_full_name\}\}', "$givenName_val $familyName_val"
-            $finalCardHtml = $finalCardHtml -replace '\{\{user_title\}\}', $title_val
-            $finalCardHtml = $finalCardHtml -replace '\{\{phone_work_display\}\}', ($phoneData.WorkPhoneDisplayForTemplates -replace "`r`n", "<br>")
-            $finalCardHtml = $finalCardHtml -replace '\{\{phone_mobile_display\}\}', ($phoneData.MobilePhoneDisplayForTemplates -replace "`r`n", "<br>")
-            $finalCardHtml = $finalCardHtml -replace '\{\{primary_email_raw\}\}', $primaryEmail_val
-            $finalCardHtml = $finalCardHtml -replace '\{\{address_label\}\}', $addressLabelForCard
-            $finalCardHtml = $finalCardHtml -replace '\{\{address_text_print\}\}', ($address_val -replace "`r`n", "<br>")
-            $finalCardHtml = $finalCardHtml -replace '\{\{website_url\}\}', $config.WebsiteUrl
-            $finalCardHtml = $finalCardHtml -replace '\{\{website_display_url\}\}', $config.WebsiteDisplayUrl
-            $finalCardHtml = $finalCardHtml -replace '\{\{qrcode_print_url\}\}', (Join-Path -Path $config.PrintQrOutputFolder -ChildPath $qrPrintFileName)
+            foreach ($key in $printableCardReplacements.Keys) {
+                $finalCardHtml = $finalCardHtml -replace $key, $printableCardReplacements[$key]
+            }
+            # --- FIN NOUVEAU: Remplacements utilisant une hashtable pour la carte imprimable ---
 
             $outputPath = Join-Path -Path $config.PrintableCardOutputFolder -ChildPath $printableCardFileName
             [System.IO.File]::WriteAllText($outputPath, $finalCardHtml, [System.Text.Encoding]::UTF8)
@@ -785,13 +804,12 @@ foreach ($user in $usersToProcess) {
         $phoneBlockHtmlForSignatureFinal += $phoneData.MobilePhoneHtmlForSignature
     }
     # Standard sur la signature (si pas le principal et nécessaire)
-    # Condition: Mobile est le principal (hasMobile=True, hasWork=False), ou Standard est le principal (UsedDefaultPhoneAsPrimary=True).
     if ( ($phoneData.UsedDefaultPhoneAsPrimary -eq $false -and $phoneData.HasMobilePhoneFromGam -eq $true -and $phoneData.HasWorkPhoneFromGam -eq $false) -or `
          ($phoneData.UsedDefaultPhoneAsPrimary -eq $true) )
     {
         # S'assurer que le standard n'est pas déjà le mobile
         if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone) {
-            $phoneBlockHtmlForSignatureFinal += "Téléphone (Centre) : <a href=`"tel:$($config.DefaultPhoneNumberRaw)`" style=`"color: #555555; text-decoration: underline;`">$($config.DefaultPhoneNumberDisplay)</a><br>"
+            $phoneBlockHtmlForSignatureFinal += "Téléphone (Centre) : <a href=`"tel:$($config.DefaultPhoneNumberRaw)`" style=`"$linkStyleSignature`">$($config.DefaultPhoneNumberDisplay)</a><br>"
         }
     }
 
@@ -848,8 +866,8 @@ foreach ($user in $usersToProcess) {
 
     Write-Host "  - Vérification de la signature actuelle sur Google..." -ForegroundColor DarkGray
     $currentSignatureHtml = & $config.GamPath user "$primaryEmail_val" print signature | Out-String
-    $newSigNormalized = ($finalSignatureHtml -replace '\s' -replace ' ', '').Trim()
-    $currentSigNormalized = ($currentSignatureHtml -replace '\s' -replace ' ', '').Trim()
+    $newSigNormalized = ($finalSignatureHtml -replace '\s' -replace ' ', '').Trim()
+    $currentSigNormalized = ($currentSignatureHtml -replace '\s' -replace ' ', '').Trim()
 
     if ($newSigNormalized -eq $currentSigNormalized) {
         Write-Host "  - La signature est déjà à jour. Mise à jour ignorée." -ForegroundColor Green
