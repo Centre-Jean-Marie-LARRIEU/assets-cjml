@@ -364,6 +364,22 @@
                 height: 45px;
             }
         }
+        
+        /* --- NOUVEAUX STYLES AJOUTÉS --- */
+        .page-footer {
+            text-align: center;
+            padding: 25px 15px;
+        }
+        .page-footer a {
+            font-size: 0.8em;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+        .page-footer a:hover {
+            text-decoration: underline;
+            color: var(--text-medium);
+        }
+
     </style>
 </head>
 <body>
@@ -397,6 +413,10 @@
             </div>
         </div>
     </div>
+
+    <footer class="page-footer">
+        <a href="mentions-legales.html">Mentions Légales & Politique de Confidentialité</a>
+    </footer>
 
     <div id="qrOverlay" class="qr-overlay" onclick="hideQrCodeOverlay(event)">
         <div class="qr-overlay-content" onclick="event.stopPropagation()">
