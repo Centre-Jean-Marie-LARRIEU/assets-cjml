@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v48.01 - Version Finale Siniature, Carte Numérique avec Mentions Légagles et Carte Imprimable)
+﻿# set_user_signatures.ps1 (v48.01 - Version Finale Signature, QR Code, Carte Numérique avec Mentions Légagles et Carte Imprimable)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -12,7 +12,7 @@ param(
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
-$script:ScriptVersion = "v48.01 - Version Finale Siniature, Carte Numérique avec Mentions Légagles et Carte Imprimable"
+$script:ScriptVersion = "v48.01 - Version Finale Signature, QR Code, Carte Numérique avec Mentions Légagles et Carte Imprimable"
 Write-Host "Démarrage du script : set_user_signatures.ps1 ($script:ScriptVersion)" -ForegroundColor Green
 
 if ($ShowHelp) {
