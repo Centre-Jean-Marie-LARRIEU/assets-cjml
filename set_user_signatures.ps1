@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v47.08 - Ajout final de la logique de génération PDF)
+﻿# set_user_signatures.ps1 (v48.01 - Version Finale Siniature, Carte Numérique avec Mentions Légagles et Carte Imprimable)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -6,13 +6,13 @@ param(
     [switch]$AddDigitalCard,
     [switch]$GeneratePrintQr,
     [switch]$GeneratePrintableCard,
-    [switch]$GeneratePdfCard, # NOUVEAU COMMUTATEUR
+    [switch]$GeneratePdfCard,
     [switch]$ShowHelp,
     [switch]$DebugMode
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
-$script:ScriptVersion = "v47.08 - Final PDF Generation Logic"
+$script:ScriptVersion = "v48.01 - Version Finale Siniature, Carte Numérique avec Mentions Légagles et Carte Imprimable"
 Write-Host "Démarrage du script : set_user_signatures.ps1 ($script:ScriptVersion)" -ForegroundColor Green
 
 if ($ShowHelp) {
@@ -76,17 +76,18 @@ EXEMPLES:
     .\set_user_signatures.ps1 -SingleUserEmail "s.gille@cjml.fr" -AddDigitalCard
 
     # Génère des QR Codes haute résolution pour tous les utilisateurs actifs (pour impression)
+    # Note: Génère des fichiers .png dans C:\GAMWork\PrintQrCodes
     .\set_user_signatures.ps1 -GeneratePrintQr
 
     # Génère une carte de visite HTML imprimable pour un utilisateur spécifique
-    # Nécessite que le QR code imprimable soit déjà généré ou générable.
+    # Note: Génère un fichier .html dans C:\GAMWork\PrintableCards à ouvrir dans un navigateur pour imprimer.
     .\set_user_signatures.ps1 -SingleUserEmail "s.gille@cjml.fr" -GeneratePrintableCard
 
     # Génère une carte de visite PDF pour un utilisateur (recto-verso sur 2 pages du PDF)
+    # Note: Nécessite wkhtmltopdf.exe dans le PATH ou chemin complet configuré. Génère un .pdf dans C:\GAMWork\PdfCards
     .\set_user_signatures.ps1 -SingleUserEmail "s.gille@cjml.fr" -GeneratePdfCard
 
     # Met à jour les signatures, les cartes de visite ET génère des QR Codes/Cartes imprimables/PDF pour un utilisateur
-    # Note: L'ordre des paramètres n'a pas d'importance, mais -DebugMode doit être à la fin si vous voulez un affichage complet.
     .\set_user_signatures.ps1 -SingleUserEmail "s.gille@cjml.fr" -AddDigitalCard -GeneratePrintQr -GeneratePrintableCard -GeneratePdfCard -DebugMode
 "@
     Write-Host $helpText
@@ -102,11 +103,11 @@ $config = @{
     PrintableCardTemplateName = "printable_business_card_template.html"
     PrintQrOutputFolder   = "C:\GAMWork\PrintQrCodes"
     PrintableCardOutputFolder = "C:\GAMWork\PrintableCards"
-    PdfCardOutputFolder   = "C:\GAMWork\PdfCards" # NOUVEAU DOSSIER POUR LES PDF
+    PdfCardOutputFolder   = "C:\GAMWork\PdfCards"
 
     SignatureLogoUrl      = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png"
     DigitalCardLogoUrl    = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-horizontal.jpg"
-    PrintLogoUrl          = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png" # Logo à utiliser pour la carte imprimable
+    PrintLogoUrl          = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png"
 
     OrgName               = "Centre Jean-Marie LARRIEU"
     DefaultPhoneNumberRaw = "+33562913250"
@@ -126,7 +127,7 @@ $config = @{
         White = [byte[]](255, 255, 255)
     }
 
-    WkhtmltopdfPath       = "wkhtmltopdf.exe" # Assurez-vous que wkhtmltopdf est dans votre PATH, ou spécifiez le chemin complet ici
+    WkhtmltopdfPath       = "wkhtmltopdf.exe"
 }
 
 # Calculs de chemins et URLs basés sur la configuration
@@ -331,20 +332,17 @@ function Get-UserPhoneData {
     )
 
     $phoneData = @{
-        WorkPhoneHtmlForSignature = "";
-        MobilePhoneHtmlForSignature = "";
         WorkPhoneDisplayForTemplates = "";
         MobilePhoneDisplayForTemplates = "";
-        RawWorkPhone = ""; # Sera le vrai work phone de GAM (si existe)
-        RawMobilePhone = ""; # Sera le vrai mobile de GAM (si existe)
+        RawWorkPhone = "";
+        RawMobilePhone = "";
         RawPrimaryDisplayPhone = ""; # Le numéro qui sera affiché en premier (work > mobile > standard)
         RawPrimaryDialPhone = ""; # Le numéro à composer pour la ligne principale
         UsedDefaultPhoneAsPrimary = $false; # Indique si le numéro principal est le standard par défaut
         HasMobilePhoneFromGam = $false; # Indique si un vrai numéro mobile de GAM est présent
         HasWorkPhoneFromGam = $false; # Indique si un vrai numéro de travail de GAM est présent
     }
-    $linkStyleSignature = "color: #555555; text-decoration: underline;"
-
+    
     $gamWorkPhoneParsed = $null
     $gamMobilePhoneParsed = $null
 
@@ -388,34 +386,22 @@ function Get-UserPhoneData {
     }
 
     # Détermination du numéro principal affiché (RawPrimaryDisplayPhone et RawPrimaryDialPhone)
-    if ($phoneData.HasWorkPhoneFromGam) { # Priorité 1: Work phone de GAM
-        $phoneData.RawPrimaryDisplayPhone = $phoneData.WorkPhoneDisplayForTemplates
-        $phoneData.RawPrimaryDialPhone = $phoneData.RawWorkPhone
-        $phoneData.WorkPhoneHtmlForSignature = "Ligne directe : <a href=`"tel:$($phoneData.RawPrimaryDialPhone)`" style=`"$linkStyleSignature`">$($phoneData.RawPrimaryDisplayPhone)</a><br>"
-    } elseif ($phoneData.HasMobilePhoneFromGam) { # Priorité 2: Mobile de GAM (si pas de work phone)
+    # Règle: mobile (si existe) > work (si existe) > standard (par défaut)
+    if ($phoneData.HasMobilePhoneFromGam) { # Priorité 1: Mobile de GAM
         $phoneData.RawPrimaryDisplayPhone = $phoneData.MobilePhoneDisplayForTemplates
         $phoneData.RawPrimaryDialPhone = $phoneData.RawMobilePhone
-        $phoneData.WorkPhoneHtmlForSignature = "Mobile : <a href=`"tel:$($phoneData.RawPrimaryDialPhone)`" style=`"$linkStyleSignature`">$($phoneData.RawPrimaryDisplayPhone)</a><br>"
+    } elseif ($phoneData.HasWorkPhoneFromGam) { # Priorité 2: Work phone de GAM (si pas de mobile)
+        $phoneData.RawPrimaryDisplayPhone = $phoneData.WorkPhoneDisplayForTemplates
+        $phoneData.RawPrimaryDialPhone = $phoneData.RawWorkPhone
     } else { # Priorité 3: Aucun téléphone GAM trouvé, utiliser le standard par défaut
         $phoneData.RawPrimaryDisplayPhone = $DefaultPhoneNumberDisplay
         $phoneData.RawPrimaryDialPhone = $DefaultPhoneNumberRaw
-        $phoneData.WorkPhoneHtmlForSignature = "Téléphone du Centre : <a href=`"tel:$($phoneData.RawPrimaryDialPhone)`" style=`"$linkStyleSignature`">$($phoneData.RawPrimaryDisplayPhone)</a><br>"
         $phoneData.UsedDefaultPhoneAsPrimary = $true
     }
 
-    # Logique pour le numéro de mobile affiché séparément (si distinct du principal)
-    if ($phoneData.HasMobilePhoneFromGam) {
-        if ($phoneData.RawMobilePhone -ne $phoneData.RawPrimaryDialPhone) {
-            $phoneData.MobilePhoneHtmlForSignature = "Mobile : <a href=`"tel:$($phoneData.RawMobilePhone)`" style=`"$linkStyleSignature`">$($phoneData.MobilePhoneDisplayForTemplates)</a><br>"
-        } else {
-            $phoneData.MobilePhoneDisplayForTemplates = ""
-            $phoneData.MobilePhoneHtmlForSignature = ""
-        }
-    } else {
-        $phoneData.MobilePhoneDisplayForTemplates = ""
-        $phoneData.RawMobilePhone = ""
-        $phoneData.MobilePhoneHtmlForSignature = ""
-    }
+    # Les champs WorkPhoneHtmlForSignature et MobilePhoneHtmlForSignature ne sont plus générés ici,
+    # mais directement dans le bloc de préparation de la signature (phoneBlockHtmlForSignatureFinal)
+    # pour une flexibilité maximale dans l'ordre et les labels.
 
     return $phoneData
 }
@@ -463,7 +449,7 @@ foreach ($user in $usersToProcess) {
     $primaryEmail_val = $user.primaryEmail
     $givenName_val = $user."name.givenName"
     $familyName_val = $user."name.familyName"
-    $title_val = $user."organizations.0.title"
+    $title_val = if ($user."organizations.0.title") { $user."organizations.0.title" } else { "" }
     $isSuspended = [string]::Equals($user.suspended, "True", [System.StringComparison]::OrdinalIgnoreCase)
 
     Write-Host "--- Processing user: $primaryEmail_val (Suspended: $isSuspended) ---" -ForegroundColor Cyan
@@ -477,7 +463,7 @@ foreach ($user in $usersToProcess) {
         $typeProperty = "addresses.$i.type"
         $formattedProperty = "addresses.$i.formatted"
 
-        if ($user.PSObject.Properties.Name -contains $typeProperty -and $user.PSObject.Properties.Name -contains $formattedProperty) {
+        if ($user.PSObject.Properties.Name -contains $typeProperty -and $UserObject.PSObject.Properties.Name -contains $formattedProperty) {
             if ($user.$typeProperty -eq 'work' -and -not [string]::IsNullOrEmpty($user.$formattedProperty)) {
                 $address_val = $user.$formattedProperty.Trim()
                 $addressLabelForCard = "Adresse du Bureau"
@@ -510,41 +496,51 @@ foreach ($user in $usersToProcess) {
     # --- Préparation des variables spécifiques à la carte numérique et à la signature ---
 
     $cardContactTextHtmlForDigitalCard = ""
-    # Ligne principale (Work, Mobile promu ou Standard)
-    if (-not [string]::IsNullOrEmpty($phoneData.RawPrimaryDisplayPhone)) {
-        $label = ""
-        if($phoneData.HasWorkPhoneFromGam){ $label = "Ligne directe" }
-        elseif($phoneData.HasMobilePhoneFromGam -and -not $phoneData.HasWorkPhoneFromGam){ $label = "Mobile" }
-        elseif($phoneData.UsedDefaultPhoneAsPrimary){ $label = "Téléphone" }
-        
-        $cardContactTextHtmlForDigitalCard += @"
-<div class="contact-item"><span class="label">$label</span><a href="tel:$($phoneData.RawPrimaryDialPhone)">$($phoneData.RawPrimaryDisplayPhone)</a></div>
-"@
-    }
-    # Mobile (seulement si un mobile GAM est présent ET que son numéro est différent de la ligne principale)
-    if ($phoneData.HasMobilePhoneFromGam -and (-not [string]::IsNullOrEmpty($phoneData.RawMobilePhone)) -and ($phoneData.RawMobilePhone -ne $phoneData.RawPrimaryDialPhone)) {
+    $phoneBlockHtmlForSignatureFinal = "" # Nouveau: Initialiser ici pour la signature
+
+    $linkStyleGeneral = "color: #555555; text-decoration: underline;" # Style commun pour les liens de téléphone/email/adresse
+
+
+    # Logique pour construire les lignes de téléphone pour la CARTE NUMÉRIQUE et la SIGNATURE
+    # Ligne 1 : Mobile si présent, sinon Ligne directe si présente, sinon Téléphone du Centre
+    if ($phoneData.HasMobilePhoneFromGam) { # Priorité 1: Mobile de GAM
         $cardContactTextHtmlForDigitalCard += @"
 <div class="contact-item"><span class="label">Mobile</span><a href="tel:$($phoneData.RawMobilePhone)">$($phoneData.MobilePhoneDisplayForTemplates)</a></div>
 "@
+        $phoneBlockHtmlForSignatureFinal += "Mobile : <a href=`"tel:$($phoneData.RawMobilePhone)`" style=`"$linkStyleGeneral`">$($phoneData.MobilePhoneDisplayForTemplates)</a><br>"
     }
-    # Standard (s'il n'est pas la ligne principale et qu'il est nécessaire d'être affiché)
-    # Condition: Mobile est principal, mais pas de work phone -> ajouter le standard.
-    # OU Standard est principal (aucun work/mobile de GAM). Cette ligne ne s'exécutera pas, c'est déjà RawPrimaryDisplayPhone.
-    if ( ($phoneData.UsedDefaultPhoneAsPrimary -eq $false -and $phoneData.HasMobilePhoneFromGam -eq $true -and $phoneData.HasWorkPhoneFromGam -eq $false) -or `
-         ($phoneData.UsedDefaultPhoneAsPrimary -eq $true) )
-    {
-        # S'assurer que le standard n'est pas déjà le mobile ou le work phone
-        if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone -and $config.DefaultPhoneNumberRaw -ne $phoneData.RawWorkPhone) {
+
+    if ($phoneData.HasWorkPhoneFromGam) { # Priorité 2: Ligne directe (si présente)
+        $cardContactTextHtmlForDigitalCard += @"
+<div class="contact-item"><span class="label">Ligne directe</span><a href="tel:$($phoneData.RawWorkPhone)">$($phoneData.WorkPhoneDisplayForTemplates)</a></div>
+"@
+        $phoneBlockHtmlForSignatureFinal += "Ligne directe : <a href=`"tel:$($phoneData.RawWorkPhone)`" style=`"$linkStyleGeneral`">$($phoneData.WorkPhoneDisplayForTemplates)</a><br>"
+    }
+
+    # Toujours ajouter le Téléphone du Centre si aucun work phone n'est présent (que le mobile soit là ou non)
+    if (-not $phoneData.HasWorkPhoneFromGam) {
+        # Vérifier si le mobile de GAM est le seul numéro et le standard n'est pas déjà affiché comme principal (pour la signature)
+        # OU si le standard est le numéro principal (aucun work/mobile de GAM)
+        # Évitons la duplication: si Mobile EST la ligne principale dans phoneData, ET c'est le seul numéro GAM.
+        # On va l'ajouter si le mobile n'est PAS le numéro du centre.
+        if ($phoneData.RawMobilePhone -ne $config.DefaultPhoneNumberRaw) { # Pour éviter de dupliquer si le mobile est aussi le standard
             $cardContactTextHtmlForDigitalCard += @"
 <div class="contact-item"><span class="label">Téléphone (Centre)</span><a href="tel:$($config.DefaultPhoneNumberRaw)">$($config.DefaultPhoneNumberDisplay)</a></div>
 "@
+            # Pour la signature, n'ajouter que si le standard n'est pas déjà le mobile principal
+            if ($phoneData.RawPrimaryDialPhone -ne $config.DefaultPhoneNumberRaw -or -not $phoneData.HasMobilePhoneFromGam) { # Si standard est principal OU si mobile est principal mais standard est un autre numero
+                $phoneBlockHtmlForSignatureFinal += "Téléphone (Centre) : <a href=`"tel:$($config.DefaultPhoneNumberRaw)`" style=`"$linkStyleGeneral`">$($config.DefaultPhoneNumberDisplay)</a><br>"
+            }
         }
     }
+
 
     # Email
     $cardContactTextHtmlForDigitalCard += @"
 <div class="contact-item"><span class="label">Email</span><a href="mailto:$primaryEmail_val">$primaryEmail_val</a></div>
 "@
+    $phoneBlockHtmlForSignatureFinal += "<a href=`"mailto:$primaryEmail_val`" style=`"$linkStyleGeneral`">$primaryEmail_val</a><br>"
+
 
     # Site Web
     if (-not [string]::IsNullOrEmpty($config.WebsiteUrl)) {
@@ -554,6 +550,7 @@ foreach ($user in $usersToProcess) {
     <a href="$($config.WebsiteUrl)" target="_blank" rel="noopener noreferrer" style="color: var(--primary-blue); text-decoration: underline;">$($config.WebsiteDisplayUrl)</a>
 </div>
 "@
+        $phoneBlockHtmlForSignatureFinal += "<a href=`"$($config.WebsiteUrl)`" target=`"_blank`" rel=`"noopener noreferrer`" style=`"color: #FCB041; text-decoration: underline; font-weight: bold;`">$($config.OrgName)</a><br>"
     }
     # Adresse (toujours en dernière position)
     $cardContactTextHtmlForDigitalCard += @"
@@ -562,6 +559,7 @@ foreach ($user in $usersToProcess) {
     <a href="https://www.google.com/maps/search/?api=1&query=$([System.Net.WebUtility]::UrlEncode($addressForSignature))" target="_blank" rel="noopener noreferrer">$addressForSignature</a>
 </div>
 "@
+    $phoneBlockHtmlForSignatureFinal += "<a href=`"$address_url_maps`" target=`"_blank`" rel=`"noopener noreferrer`" style=`"$linkStyleGeneral`">$addressForSignature</a><br>"
 
 
     $actionButtonsHtmlForDigitalCard = ""
@@ -571,30 +569,19 @@ foreach ($user in $usersToProcess) {
 <a href="tel:$($phoneData.RawMobilePhone)" class="button secondary">Appeler (Mobile)</a>
 "@
     }
-    # Bouton Appeler (Direct) ou Appeler le Centre
-    if (-not [string]::IsNullOrEmpty($phoneData.RawPrimaryDialPhone)) {
-        $buttonLabel = ""
-        if ($phoneData.HasWorkPhoneFromGam) {
-            $buttonLabel = "Appeler (Direct)"
-        } elseif ($phoneData.UsedDefaultPhoneAsPrimary) {
-            $buttonLabel = "Appeler le Centre"
-        }
-        # Ajouter ce bouton SEULEMENT si son numéro n'est PAS un doublon d'un bouton mobile (si le mobile est déjà géré séparément)
-        if (-not [string]::IsNullOrEmpty($buttonLabel) -and ($phoneData.RawPrimaryDialPhone -ne $phoneData.RawMobilePhone)) {
-             $actionButtonsHtmlForDigitalCard += @"
-<a href="tel:$($phoneData.RawPrimaryDialPhone)" class="button secondary">$buttonLabel</a>
+    # Bouton Appeler (Direct)
+    if ($phoneData.HasWorkPhoneFromGam -and (-not [string]::IsNullOrEmpty($phoneData.RawWorkPhone))) {
+        $actionButtonsHtmlForDigitalCard += @"
+<a href="tel:$($phoneData.RawWorkPhone)" class="button secondary">Appeler (Direct)</a>
 "@
-        }
-        # Cas spécial: Si le mobile est le numéro principal (promu), et qu'il n'y a pas de work phone,
-        # et que le standard doit aussi apparaître, ajouter un bouton "Appeler le Centre"
-        if (-not $phoneData.HasWorkPhoneFromGam -and $phoneData.HasMobilePhoneFromGam -and -not $phoneData.UsedDefaultPhoneAsPrimary) {
-             if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone) {
-                 $actionButtonsHtmlForDigitalCard += @"
+    }
+    # Bouton Appeler le Centre - Seulement si le standard n'est pas déjà le mobile ou le work phone
+    if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone -and $config.DefaultPhoneNumberRaw -ne $phoneData.RawWorkPhone) {
+        $actionButtonsHtmlForDigitalCard += @"
 <a href="tel:$($config.DefaultPhoneNumberRaw)" class="button secondary">Appeler le Centre</a>
 "@
-             }
-        }
     }
+
     $actionButtonsHtmlForDigitalCard += @"
 <a href="mailto:$primaryEmail_val" class="button secondary">Envoyer un Email</a>
 "@
@@ -607,7 +594,7 @@ foreach ($user in $usersToProcess) {
     $downloaderPageUrl_final = "$($githubConfig.PagesBaseUrl)/$($githubConfig.VcardFolderPath)/$downloaderPageFileName"
 
     # --- Génération des QR Codes et Cartes imprimables (locales) ---
-    if ($GeneratePrintQr -or $GeneratePrintableCard -or $GeneratePdfCard) { # Inclut GeneratePdfCard ici
+    if ($GeneratePrintQr -or $GeneratePrintableCard -or $GeneratePdfCard) {
         $qrPrintFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_')_print_qrcode.png"
         Write-Host "  - Génération du QR Code pour impression : '$qrPrintFileName' dans '$($config.PrintQrOutputFolder)'..." -ForegroundColor DarkYellow
         $printQrSuccess = Generate-QrCodeFile `
@@ -624,14 +611,14 @@ foreach ($user in $usersToProcess) {
     # Préparer le contenu HTML pour la carte imprimable/PDF
     $printableCardTemplateContent = Get-TemplateContent($config.PrintableCardTemplatePath)
 
-    # --- NOUVEAU: Remplacements utilisant une hashtable pour la carte imprimable / PDF ---
+    # --- Remplacements pour la carte imprimable / PDF (utilisation de la hashtable) ---
     $printableCardReplacements = @{
         '{{digital_card_logo_url_for_print}}' = $config.PrintLogoUrl
         '{{user_full_name}}'                  = "$givenName_val $familyName_val"
         '{{user_title}}'                      = $title_val
         '{{contact_list_html}}'               = $cardContactTextHtmlForDigitalCard # <- UTILISE LA MÊME VARIABLE ICI
-        '{{address_label}}'                   = $addressLabelForCard
-        '{{address_text_print}}'              = ($address_val -replace "`r`n", "<br>") # Fallback si pas en contact_list_html
+        '{{address_label}}'                   = $addressLabelForCard # Maintenu au cas où ce soit utilisé pour un label spécifique
+        '{{address_text_print}}'              = ($address_val -replace "`r`n", "<br>") # Maintenu pour backward compatibility si besoin
         '{{website_url}}'                     = $config.WebsiteUrl
         '{{website_display_url}}'             = $config.WebsiteDisplayUrl
         '{{qrcode_print_url}}'                = (Join-Path -Path $config.PrintQrOutputFolder -ChildPath $qrPrintFileName)
@@ -641,7 +628,7 @@ foreach ($user in $usersToProcess) {
     foreach ($key in $printableCardReplacements.Keys) {
         $finalPrintableCardHtml = $finalPrintableCardHtml -replace $key, $printableCardReplacements[$key]
     }
-    # --- FIN NOUVEAU: Remplacements utilisant une hashtable pour la carte imprimable / PDF ---
+    # --- FIN Remplacements pour la carte imprimable / PDF ---
 
     # Génération du fichier HTML pour la carte imprimable
     if ($GeneratePrintableCard) {
@@ -674,33 +661,25 @@ foreach ($user in $usersToProcess) {
         }
 
         try {
-            # Écrire le HTML final dans un fichier temporaire pour wkhtmltopdf
             [System.IO.File]::WriteAllText($tempHtmlForPdfPath, $finalPrintableCardHtml, [System.Text.Encoding]::UTF8)
 
-            # Options wkhtmltopdf pour une carte de visite 85x55mm
-            # --page-width et --page-height pour la taille de la carte
-            # --margin-top, --margin-bottom, --margin-left, --margin-right pour s'assurer que le contenu respecte le padding HTML
-            # --enable-local-file-access pour que wkhtmltopdf puisse charger les images locales si besoin (comme le QR code imprimable)
-            # Pour le recto-verso, wkhtmltopdf traitera chaque page HTML comme une page PDF séparée.
-            # Le template HTML actuel contient 2 divs .card-face, chacun étant une page PDF.
             $wkhtmltopdfArgs = @(
                 '--page-width', '85mm',
                 '--page-height', '55mm',
-                '--margin-top', '0mm', # Les marges sont déjà gérées par le padding du body HTML
+                '--margin-top', '0mm',
                 '--margin-bottom', '0mm',
                 '--margin-left', '0mm',
                 '--margin-right', '0mm',
-                '--no-stop-slow-scripts', # Utile si des scripts JS lents posent problème (bien que pas dans ce template)
-                '--enable-local-file-access', # Permet de lire les images locales (QR code)
-                '--print-media-type', # Utilise les styles @media print
-                '--dpi', '300', # Haute résolution pour l'impression
+                '--no-stop-slow-scripts',
+                '--enable-local-file-access',
+                '--print-media-type',
+                '--dpi', '300',
                 $tempHtmlForPdfPath,
                 $pdfOutputPath
             )
 
             Write-Host "    Appel wkhtmltopdf : $($config.WkhtmltopdfPath) $($wkhtmltopdfArgs -join ' ')" -ForegroundColor DarkGray
             
-            # Exécuter wkhtmltopdf
             $wkhtmltopdfResult = & $config.WkhtmltopdfPath $wkhtmltopdfArgs 2>&1
             
             if ($LASTEXITCODE -eq 0) {
@@ -862,28 +841,24 @@ foreach ($user in $usersToProcess) {
 
     # Construire phoneBlockHtmlForSignatureFinal de manière explicite
     $phoneBlockHtmlForSignatureFinal = ""
-    # Ligne principale (work ou mobile promu ou standard)
-    if (-not [string]::IsNullOrEmpty($phoneData.WorkPhoneHtmlForSignature)) {
-        $phoneBlockHtmlForSignatureFinal += $phoneData.WorkPhoneHtmlForSignature
+    # Ligne mobile (si présente)
+    if (-not [string]::IsNullOrEmpty($phoneData.RawMobilePhone)) {
+        $phoneBlockHtmlForSignatureFinal += "Mobile : <a href=`"tel:$($phoneData.RawMobilePhone)`" style=`"color: #555555; text-decoration: underline;`">$($phoneData.MobilePhoneDisplayForTemplates)</a><br>"
     }
-    # Mobile (seulement si distinct du principal)
-    if (-not [string]::IsNullOrEmpty($phoneData.MobilePhoneHtmlForSignature)) {
-        $phoneBlockHtmlForSignatureFinal += $phoneData.MobilePhoneHtmlForSignature
+    # Ligne directe (si présente)
+    if (-not [string]::IsNullOrEmpty($phoneData.RawWorkPhone)) {
+        $phoneBlockHtmlForSignatureFinal += "Ligne directe : <a href=`"tel:$($phoneData.RawWorkPhone)`" style=`"color: #555555; text-decoration: underline;`">$($phoneData.WorkPhoneDisplayForTemplates)</a><br>"
     }
-    # Standard sur la signature (si pas le principal et nécessaire)
-    if ( ($phoneData.UsedDefaultPhoneAsPrimary -eq $false -and $phoneData.HasMobilePhoneFromGam -eq $true -and $phoneData.HasWorkPhoneFromGam -eq $false) -or `
-         ($phoneData.UsedDefaultPhoneAsPrimary -eq $true) )
-    {
-        # S'assurer que le standard n'est pas déjà le mobile
+    # Standard (si pas de work phone)
+    if (-not $phoneData.HasWorkPhoneFromGam) {
+        # Ajouter le standard SEULEMENT si ce n'est PAS déjà le numéro mobile (pour éviter la duplication si le mobile est le seul numéro GAM)
         if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone) {
-            #Bug Style $linkStyleSignature
-			$phoneBlockHtmlForSignatureFinal += "Téléphone (Centre) : <a href=`"tel:$($config.DefaultPhoneNumberRaw)`" style=`"color: #555555; text-decoration: underline;`">$($config.DefaultPhoneNumberDisplay)</a><br>"
-			#$phoneBlockHtmlForSignatureFinal += "Téléphone (Centre) : <a href=`"tel:$($config.DefaultPhoneNumberRaw)`" style=`"$linkStyleSignature`">$($config.DefaultPhoneNumberDisplay)</a><br>"
+            $phoneBlockHtmlForSignatureFinal += "Téléphone (Centre) : <a href=`"tel:$($config.DefaultPhoneNumberRaw)`" style=`"$linkStyleGeneral`">$($config.DefaultPhoneNumberDisplay)</a><br>"
         }
     }
 
 
-    # Logs pour la console
+    # Logs pour la console (rappel, ceci n'affecte pas le HTML, juste l'affichage dans la console)
     if ($phoneData.RawPrimaryDisplayPhone) {
         $logPhoneLines += "Ligne principale (affichée) : $($phoneData.RawPrimaryDisplayPhone)"
     }

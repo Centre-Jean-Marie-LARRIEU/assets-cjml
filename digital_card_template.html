@@ -364,6 +364,22 @@
                 height: 45px;
             }
         }
+        
+        /* --- NOUVEAUX STYLES AJOUTÉS --- */
+        .page-footer {
+            text-align: center;
+            padding: 25px 15px;
+        }
+        .page-footer a {
+            font-size: 0.8em;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+        .page-footer a:hover {
+            text-decoration: underline;
+            color: var(--text-medium);
+        }
+
     </style>
 </head>
 <body>
@@ -375,11 +391,6 @@
         <hr>
         <div class="contact-info">
             {{contact_list_html}}
-            <div class="contact-item">
-                <span class="label">{{address_label}}</span>
-                <a href="{{address_url_maps}}" target="_blank" rel="noopener noreferrer">{{address_texte}}</a>
-            </div>
-            {{website_html_for_card}}
         </div>
         <div class="action-buttons">
             {{action_buttons_html}}
@@ -396,6 +407,10 @@
             </div>
         </div>
     </div>
+
+    <footer class="page-footer">
+        <a href="mentions-legales.html">Mentions Légales & Politique de Confidentialité</a>
+    </footer>
 
     <div id="qrOverlay" class="qr-overlay" onclick="hideQrCodeOverlay(event)">
         <div class="qr-overlay-content" onclick="event.stopPropagation()">
