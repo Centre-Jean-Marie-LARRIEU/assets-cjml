@@ -28,8 +28,7 @@
             box-sizing: border-box;
             line-height: 1.5;
             color: var(--text-dark);
-            /* Ajout pour éviter le scroll quand le bandeau est en place */
-            overflow-x: hidden;
+            overflow-x: hidden; /* Pour éviter le scroll horizontal sur mobile */
         }
         .card {
             background-color: var(--card-bg);
@@ -368,15 +367,15 @@
             color: var(--text-medium);
         }
 
-        /* --- STYLES DU BANDEAU DE CONSENTEMENT --- */
+        /* --- STYLES DU BANDEAU DE CONSENTEMENT (AJUSTÉS POUR MOBILE) --- */
         #cookieConsentBanner {
             position: fixed;
             bottom: 0;
             left: 0;
-            width: 100%;
+            width: 100vw; 
             background-color: var(--card-bg);
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            padding: 15px 20px;
+            padding: 15px 20px; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -386,6 +385,7 @@
             transition: transform 0.3s ease-out;
             opacity: 0;
             visibility: hidden;
+            box-sizing: border-box; 
         }
         #cookieConsentBanner.show {
             transform: translateY(0);
@@ -397,12 +397,18 @@
             font-size: 0.9em;
             color: var(--text-dark);
             text-align: center;
+            max-width: 600px; 
         }
         #cookieConsentBanner .consent-buttons {
             display: flex;
+            flex-wrap: wrap; 
+            justify-content: center;
             gap: 10px;
+            width: 100%; 
+            max-width: 300px; 
         }
         #cookieConsentBanner .consent-button {
+            flex-grow: 1; 
             padding: 10px 18px;
             border-radius: 7px;
             font-weight: 500;
@@ -412,6 +418,7 @@
             background-color: var(--primary-blue);
             color: white;
             transition: background-color 0.2s ease, transform 0.2s ease;
+            box-sizing: border-box; 
         }
         #cookieConsentBanner .consent-button.deny {
             background-color: #f0f0f0;
@@ -422,25 +429,25 @@
             opacity: 0.9;
             transform: translateY(-1px);
         }
-        /* Ajustements pour les petits écrans */
         @media (max-width: 480px) {
             #cookieConsentBanner {
-                padding: 10px 15px;
+                padding: 15px; 
             }
             #cookieConsentBanner p {
                 font-size: 0.85em;
             }
             #cookieConsentBanner .consent-buttons {
-                flex-direction: column;
-                width: 100%;
+                flex-direction: column; 
+                width: 100%; 
+                max-width: none; 
             }
             #cookieConsentBanner .consent-button {
-                width: 100%;
+                width: 100%; 
                 text-align: center;
             }
         }
     </style>
-    </head>
+</head>
 <body>
     <div class="card">
         <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-horizontal.jpg" alt="Logo" class="logo">
@@ -552,12 +559,11 @@
                     console.log('Partage natif réussi');
                 } catch (err) {
                     console.log('Erreur de partage natif ou annulé: ', err);
-                } finally {
-                    hideShareOverlay();
-                }
+                } // Pas de finally ici pour éviter la fermeture prématurée si l'action n'est pas confirmée immédiatement par l'OS
             } else {
                 alert("La fonction de partage native n'est pas disponible sur votre appareil/navigateur. Veuillez utiliser 'Envoyer par Email' ou 'Copier le lien'.");
             }
+            hideShareOverlay(); // Fermer l'overlay après le déclenchement du partage natif ou l'alerte
         }
 
         function copyLink() {
@@ -587,42 +593,35 @@
             });
         }
 
-        // --- NOUVEAU SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS ---
-        const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // <-- REMPLACER PAR VOTRE NOUVEL ID GA4
+        // --- SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS ---
+        const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // VOTRE ID GA4
 
         function initializeGoogleAnalytics() {
-            // Empêcher l'initialisation si déjà fait
             if (window.gaInitialized) return; 
 
-            // Script gtag.js
             const gtagScript = document.createElement('script');
             gtagScript.async = true;
             gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
             document.head.appendChild(gtagScript);
 
-            // DataLayer et configuration initiale
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
 
-            // On s'assure que card_user_name est toujours défini pour tous les hits GA4
             gtag('set', { 'card_user_name': 'Oanez LEMAILLET' });
             gtag('config', GA4_MEASUREMENT_ID);
 
-            window.gaInitialized = true; // Marque l'initialisation
+            window.gaInitialized = true; 
             console.log('Google Analytics initialisé.');
 
-            // Déclenchement des écouteurs d'événements GA4 APRÈS INITIALISATION
             setupGAEventListeners();
         }
 
-        // Fonction pour configurer les écouteurs d'événements GA4
         function setupGAEventListeners() {
             const userName = 'Oanez LEMAILLET';
 
-            // Fonction utilitaire pour envoyer l'événement de clic
             function sendButtonClickEvent(category, label, text) {
-                if (window.gaInitialized) { // S'assurer que GA est initialisé
+                if (window.gaInitialized) {
                     gtag('event', 'button_click', {
                         'event_category': category,
                         'event_label': label + ' - ' + userName,
@@ -633,45 +632,33 @@
                 }
             }
 
-            // Suivi du bouton "Enregistrer dans mes Contacts"
-            document.getElementById('saveContactButton').addEventListener('click', function() {
+            // Attachement des écouteurs d'événements
+            document.getElementById('saveContactButton')?.addEventListener('click', function() {
                 sendButtonClickEvent('Carte de Visite', 'Enregistrer Contact', 'Enregistrer dans mes Contacts');
             });
-
-            // Suivi du bouton "Scannez ma carte" (petite icône QR)
-            document.getElementById('qrCodeSmallButton').addEventListener('click', function() {
+            document.getElementById('qrCodeSmallButton')?.addEventListener('click', function() {
                 sendButtonClickEvent('Carte de Visite', 'Afficher QR Code', 'Scannez ma carte');
             });
-
-            // Suivi du bouton "Partager" (principal)
-            document.getElementById('shareButton').addEventListener('click', function() {
+            document.getElementById('shareButton')?.addEventListener('click', function() {
                 sendButtonClickEvent('Carte de Visite', 'Ouvrir Partage', 'Partager');
             });
-
-            // Suivi du bouton "Accéder à la page complète" dans l'overlay QR
-            document.getElementById('qrOverlayLinkButton').addEventListener('click', function() {
+            document.getElementById('qrOverlayLinkButton')?.addEventListener('click', function() {
                 sendButtonClickEvent('Carte de Visite', 'Lien Page Complete QR Overlay', 'Accéder à la page complète');
             });
-
-            // Suivi des options de partage
-            document.getElementById('nativeShareButton').addEventListener('click', function() {
+            document.getElementById('nativeShareButton')?.addEventListener('click', function() {
                 sendButtonClickEvent('Carte de Visite', 'Partager Natif', 'Partager (appareil)');
             });
-
-            document.getElementById('emailShareButton').addEventListener('click', function() {
+            document.getElementById('emailShareButton')?.addEventListener('click', function() {
                 sendButtonClickEvent('Carte de Visite', 'Partager Email', 'Envoyer par Email');
             });
-
-            document.getElementById('copyLinkShareButton').addEventListener('click', function() {
+            document.getElementById('copyLinkShareButton')?.addEventListener('click', function() {
                 sendButtonClickEvent('Carte de Visite', 'Copier Lien Partage', 'Copier le lien');
             });
 
-            // GESTION DES BOUTONS GÉNÉRÉS DYNAMIQUEMENT PAR <a href="tel:+33562913250" class="button secondary trackable-action-button" data-analytics-label="Appeler (Centre)">Appeler le Centre</a><a href="mailto:o.lemaillet@cjml.fr" class="button secondary trackable-action-button" data-analytics-label="Envoyer Email">Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary trackable-action-button" data-analytics-label="Itinéraire">Itinéraire</a>
             const actionButtonsContainer = document.getElementById('actionButtonsContainer');
             if (actionButtonsContainer) {
                 actionButtonsContainer.querySelectorAll('a.button, button.button').forEach(button => {
                     const buttonText = button.textContent.trim() || button.getAttribute('data-analytics-label') || 'Action Button';
-                    
                     button.addEventListener('click', function() {
                         sendButtonClickEvent('Carte de Visite - Actions', buttonText, buttonText);
                     });
@@ -686,30 +673,25 @@
             const denyButton = document.getElementById('denyCookies');
             const consentCookieName = 'cjml_ga_consent'; // Nom du cookie de consentement
 
-            // Vérifier le statut du consentement
             const getConsent = () => localStorage.getItem(consentCookieName);
 
-            // Afficher le bandeau si le consentement n'a pas été donné
             if (!getConsent()) {
-                setTimeout(() => { // Petit délai pour laisser la page se charger
+                setTimeout(() => { 
                     consentBanner.classList.add('show');
                 }, 500); 
             } else if (getConsent() === 'granted') {
-                // Si consentement déjà donné, initialiser GA directement
                 initializeGoogleAnalytics();
             }
 
-            // Gestion des clics sur les boutons du bandeau
             acceptButton.addEventListener('click', function() {
                 localStorage.setItem(consentCookieName, 'granted');
                 consentBanner.classList.remove('show');
-                initializeGoogleAnalytics(); // Initialiser GA
+                initializeGoogleAnalytics(); 
             });
 
             denyButton.addEventListener('click', function() {
                 localStorage.setItem(consentCookieName, 'denied');
                 consentBanner.classList.remove('show');
-                // Ne rien faire d'autre : GA ne sera pas initialisé
             });
         });
     </script>
