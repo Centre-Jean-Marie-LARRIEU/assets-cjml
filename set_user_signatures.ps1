@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v48.01 - Version Finale Signature, QR Code, Carte Numérique avec Mentions Légagles et Carte Imprimable)
+﻿# set_user_signatures.ps1 (v48.02 - Version Finale Signature, QR Code, Carte Numérique avec Mentions Légagles et Carte Imprimable + GA4 Tracking)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -12,7 +12,7 @@ param(
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
-$script:ScriptVersion = "v48.01 - Version Finale Signature, QR Code, Carte Numérique avec Mentions Légagles et Carte Imprimable"
+$script:ScriptVersion = "v48.02 - Version Finale Signature, QR Code, Carte Numérique avec Mentions Légagles et Carte Imprimable + GA4 Tracking"
 Write-Host "Démarrage du script : set_user_signatures.ps1 ($script:ScriptVersion)" -ForegroundColor Green
 
 if ($ShowHelp) {
@@ -37,6 +37,7 @@ DESCRIPTION:
       directement dans le lien de téléchargement (méthode Data-URL).
       Nouveauté : La carte inclus désormais un QR Code interactif qui peut être agrandi pour un partage facile,
       et le label de l'adresse (ex: 'Siège Social') est dynamiquement affiché.
+      Cette version inclut le suivi Google Analytics 4 (GA4) pour les consultations de pages et les clics sur les boutons.
 
 PARAMÈTRES:
     -SingleUserEmail <string>
@@ -46,7 +47,7 @@ PARAMÈTRES:
         Commutateur. Si présent, le script mettra à jour TOUS les utilisateurs, y compris les comptes suspendus.
 
     -AddDigitalCard
-        Commutateur. Si présent, active la génération de la carte de visite numérique avec QR Code.
+        Commutateur. Si présent, active la génération de la carte de visite numérique avec QR Code et le suivi GA4.
 
     -GeneratePrintQr
         Commutateur. Si présent, génère des QR Codes haute résolution pour l'impression dans un dossier local.
@@ -562,32 +563,34 @@ foreach ($user in $usersToProcess) {
     $phoneBlockHtmlForSignatureFinal += "<a href=`"$address_url_maps`" target=`"_blank`" rel=`"noopener noreferrer`" style=`"$linkStyleGeneral`">$addressForSignature</a><br>"
 
 
+    # --- DÉBUT MODIFICATIONS POUR LE SUIVI GA4 DES BOUTONS D'ACTION DE LA CARTE NUMÉRIQUE ---
     $actionButtonsHtmlForDigitalCard = ""
     # Bouton Appeler (Mobile) - Seulement si un mobile GAM est présent
     if ($phoneData.HasMobilePhoneFromGam -and (-not [string]::IsNullOrEmpty($phoneData.RawMobilePhone))) {
         $actionButtonsHtmlForDigitalCard += @"
-<a href="tel:$($phoneData.RawMobilePhone)" class="button secondary">Appeler (Mobile)</a>
+<a href="tel:$($phoneData.RawMobilePhone)" class="button secondary trackable-action-button" data-analytics-label="Appeler (Mobile)">Appeler (Mobile)</a>
 "@
     }
     # Bouton Appeler (Direct)
     if ($phoneData.HasWorkPhoneFromGam -and (-not [string]::IsNullOrEmpty($phoneData.RawWorkPhone))) {
         $actionButtonsHtmlForDigitalCard += @"
-<a href="tel:$($phoneData.RawWorkPhone)" class="button secondary">Appeler (Direct)</a>
+<a href="tel:$($phoneData.RawWorkPhone)" class="button secondary trackable-action-button" data-analytics-label="Appeler (Direct)">Appeler (Direct)</a>
 "@
     }
     # Bouton Appeler le Centre - Seulement si le standard n'est pas déjà le mobile ou le work phone
     if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone -and $config.DefaultPhoneNumberRaw -ne $phoneData.RawWorkPhone) {
         $actionButtonsHtmlForDigitalCard += @"
-<a href="tel:$($config.DefaultPhoneNumberRaw)" class="button secondary">Appeler le Centre</a>
+<a href="tel:$($config.DefaultPhoneNumberRaw)" class="button secondary trackable-action-button" data-analytics-label="Appeler (Centre)">Appeler le Centre</a>
 "@
     }
 
     $actionButtonsHtmlForDigitalCard += @"
-<a href="mailto:$primaryEmail_val" class="button secondary">Envoyer un Email</a>
+<a href="mailto:$primaryEmail_val" class="button secondary trackable-action-button" data-analytics-label="Envoyer Email">Envoyer un Email</a>
 "@
     $actionButtonsHtmlForDigitalCard += @"
-<a href="$address_url_maps" target="_blank" class="button secondary">Itinéraire</a>
+<a href="$address_url_maps" target="_blank" class="button secondary trackable-action-button" data-analytics-label="Itinéraire">Itinéraire</a>
 "@
+    # --- FIN MODIFICATIONS POUR LE SUIVI GA4 DES BOUTONS D'ACTION DE LA CARTE NUMÉRIQUE ---
 
     # Génération du nom de fichier pour la page de téléchargement et son URL finale
     $downloaderPageFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_').html"
@@ -779,7 +782,7 @@ foreach ($user in $usersToProcess) {
             '{{user_full_name}}'       = "$givenName_val $familyName_val"
             '{{user_title}}'           = $title_val
             '{{contact_list_html}}'    = $cardContactTextHtmlForDigitalCard
-            '{{action_buttons_html}}'  = $actionButtonsHtmlForDigitalCard
+            '{{action_buttons_html}}'  = $actionButtonsHtmlForDigitalCard # <-- Cette variable est maintenant correctement formatée pour le suivi GA4
             '{{vcf_url}}'              = $vcfDataUrl
             '{{vcf_download_name}}'    = $vcardDownloadName
             '{{qrcode_image_url}}'     = $qrCodeImageUrl_pages_for_digital_card
