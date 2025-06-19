@@ -28,6 +28,7 @@
             box-sizing: border-box;
             line-height: 1.5;
             color: var(--text-dark);
+            overflow-x: hidden; /* Pour éviter le scroll horizontal sur mobile */
         }
         .card {
             background-color: var(--card-bg);
@@ -39,7 +40,7 @@
             width: 95%;
             box-sizing: border-box;
             position: relative;
-            padding-bottom: 100px; /* Espace pour les éléments du bas */
+            padding-bottom: 100px;
             overflow: hidden;
         }
         .logo {
@@ -136,30 +137,27 @@
             box-shadow: 0 4px 10px var(--shadow-medium);
         }
 
-        /* Conteneur commun pour les actions du bas (Partager et QR Code) */
         .bottom-actions-container {
             position: absolute;
-            bottom: 25px; /* Du bas de la carte */
-            left: 25px; /* Aligné à gauche de la carte */
-            right: 25px; /* Aligné à droite de la carte */
+            bottom: 25px;
+            left: 25px;
+            right: 25px;
             display: flex;
-            justify-content: space-between; /* Espace entre le QR code et le bouton */
-            align-items: flex-end; /* Aligner les éléments en bas (pour le texte du QR code) */
-            width: calc(100% - 50px); /* Largeur de la carte moins le padding gauche/droite */
-            box-sizing: border-box; /* Inclure padding dans la largeur */
+            justify-content: space-between;
+            align-items: flex-end;
+            width: calc(100% - 50px);
+            box-sizing: border-box;
         }
 
-        /* Conteneur du QR Code (en bas à gauche) */
         .qr-code-small-container {
             display: flex;
             align-items: center;
             cursor: pointer;
             z-index: 1;
             transition: transform 0.2s ease;
-            flex-direction: row; /* Ordre normal : QR Code à gauche, texte à droite */
-            text-align: left; /* Pour aligner le texte à gauche */
-            width: auto; /* Ajuste la largeur à son contenu */
-            /* Flex-shrink pour permettre au QR code de se réduire si besoin */
+            flex-direction: row;
+            text-align: left;
+            width: auto;
             flex-shrink: 0;
         }
         .qr-code-small-container:hover {
@@ -179,29 +177,25 @@
             color: var(--text-medium);
             line-height: 1.2;
             font-weight: 500;
-            white-space: nowrap; /* Empêche le texte de se casser sur plusieurs lignes */
+            white-space: nowrap;
         }
 
-        /* Conteneur du bouton Partager (en bas à droite) */
         .share-button-container {
             display: flex;
             align-items: center;
-            justify-content: flex-end; /* Pousse le bouton à droite dans son conteneur flex */
-            /* Flex-grow pour permettre au bouton de prendre l'espace restant */
+            justify-content: flex-end;
             flex-grow: 1;
-            /* Pas de positionnement absolu ici, géré par .bottom-actions-container */
             position: static;
             bottom: auto;
             left: auto;
             right: auto;
-            /* Marge gauche pour un peu d'espace entre le QR et le bouton */
             margin-left: 10px;
         }
         .share-main-button {
-            padding: 12px 15px; /* Padding ajusté pour un bouton plus compact sur mobile */
+            padding: 12px 15px;
             border-radius: 10px;
             font-weight: 500;
-            font-size: 0.95em; /* Taille de police légèrement réduite pour tenir */
+            font-size: 0.95em;
             text-decoration: none;
             display: inline-flex;
             justify-content: center;
@@ -212,9 +206,9 @@
             color: white !important;
             border: 1px solid var(--accent-orange);
             cursor: pointer;
-            white-space: nowrap; /* Empêche le texte de se casser */
-            max-width: 100%; /* S'assure que le bouton ne dépasse pas son conteneur */
-            box-sizing: border-box; /* Inclure padding dans la largeur */
+            white-space: nowrap;
+            max-width: 100%;
+            box-sizing: border-box;
         }
         .share-main-button:hover {
             opacity: 0.9;
@@ -222,7 +216,7 @@
             box-shadow: 0 6px 15px var(--shadow-medium);
         }
 
-        /* QR Code Overlay et Share Overlay (partagent des styles de base pour les superpositions) */
+        /* Overlays (QR and Share) */
         .qr-overlay, .share-overlay {
             position: fixed;
             top: 0;
@@ -292,7 +286,6 @@
             font-size: 0.95em;
         }
 
-        /* Styles spécifiques au contenu du menu de partage */
         .share-options-menu {
             display: flex;
             flex-direction: column;
@@ -322,7 +315,6 @@
             box-shadow: 0 3px 8px var(--shadow-medium);
         }
 
-        /* Styles pour les écrans plus petits, ajustements finaux */
         @media (max-width: 480px) {
             .card {
                 padding-bottom: 90px;
@@ -331,41 +323,36 @@
                 left: 15px;
                 right: 15px;
                 bottom: 15px;
-                /* NE PAS changer en column, garder en row pour les garder côte à côte */
-                flex-direction: row; 
-                justify-content: space-between; /* Toujours espace entre eux */
-                align-items: flex-end; /* Aligner en bas si hauteurs différentes */
-                gap: 5px; /* Réduit le gap entre les deux éléments */
-                width: calc(100% - 30px); /* Largeur ajustée aux nouveaux paddings */
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-end;
+                gap: 5px;
+                width: calc(100% - 30px);
             }
-            /* Pas de position static pour les enfants, ils sont flex items */
             .qr-code-small-container, .share-button-container {
-                /* Plus de position: static, ils sont des flex items */
-                position: relative; /* ou aucun */
-                width: auto; /* Laisser flexbox gérer la largeur */
-                /* Enlève justify-content: center; qui pourrait poser problème avec space-between */
-                justify-content: flex-start; /* ou center si besoin plus spécifique */
-                flex-grow: 0; /* Ne pas grandir de manière excessive */
+                position: relative;
+                width: auto;
+                justify-content: flex-start;
+                flex-grow: 0;
             }
             .share-button-container {
-                margin-left: 5px; /* Petit espace entre le QR code et le bouton Partager */
+                margin-left: 5px;
             }
             .share-main-button {
-                width: auto; /* Laisser le bouton s'ajuster à son contenu */
-                padding: 10px 12px; /* Rendre le bouton plus petit pour qu'il tienne */
-                font-size: 0.85em; /* Taille de police plus petite */
-                white-space: nowrap; /* Indispensable pour éviter que le texte ne se coupe */
+                width: auto;
+                padding: 10px 12px;
+                font-size: 0.85em;
+                white-space: nowrap;
             }
             .qr-code-text {
-                font-size: 0.65em; /* Texte encore plus petit */
+                font-size: 0.65em;
             }
             .qr-code-small {
-                width: 45px; /* Rendre le QR code un peu plus petit sur mobile */
+                width: 45px;
                 height: 45px;
             }
         }
         
-        /* --- NOUVEAUX STYLES AJOUTÉS --- */
         .page-footer {
             text-align: center;
             padding: 25px 15px;
@@ -380,6 +367,85 @@
             color: var(--text-medium);
         }
 
+        /* --- STYLES DU BANDEAU DE CONSENTEMENT (AJUSTÉS POUR MOBILE) --- */
+        #cookieConsentBanner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw; 
+            background-color: var(--card-bg);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            padding: 15px 20px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 10000;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            opacity: 0;
+            visibility: hidden;
+            box-sizing: border-box; 
+        }
+        #cookieConsentBanner.show {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        #cookieConsentBanner p {
+            margin: 0;
+            font-size: 0.9em;
+            color: var(--text-dark);
+            text-align: center;
+            max-width: 600px; 
+        }
+        #cookieConsentBanner .consent-buttons {
+            display: flex;
+            flex-wrap: wrap; 
+            justify-content: center;
+            gap: 10px;
+            width: 100%; 
+            max-width: 300px; 
+        }
+        #cookieConsentBanner .consent-button {
+            flex-grow: 1; 
+            padding: 10px 18px;
+            border-radius: 7px;
+            font-weight: 500;
+            font-size: 0.9em;
+            cursor: pointer;
+            border: 1px solid var(--primary-blue);
+            background-color: var(--primary-blue);
+            color: white;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            box-sizing: border-box; 
+        }
+        #cookieConsentBanner .consent-button.deny {
+            background-color: #f0f0f0;
+            color: var(--text-dark);
+            border: 1px solid var(--border-light);
+        }
+        #cookieConsentBanner .consent-button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        @media (max-width: 480px) {
+            #cookieConsentBanner {
+                padding: 15px; 
+            }
+            #cookieConsentBanner p {
+                font-size: 0.85em;
+            }
+            #cookieConsentBanner .consent-buttons {
+                flex-direction: column; 
+                width: 100%; 
+                max-width: none; 
+            }
+            #cookieConsentBanner .consent-button {
+                width: 100%; 
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -387,7 +453,7 @@
         <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-horizontal.jpg" alt="Logo" class="logo">
         <h1>Marie-Jo DUCASSE</h1>
         <p class="title">Responsable Ressources Humaines</p>
-        <a href="data:text/vcard;charset=utf-8,BEGIN%3AVCARD%0AVERSION%3A3.0%0AN%3ADUCASSE%3BMarie-Jo%3B%3B%3B%0AFN%3AMarie-Jo%20DUCASSE%0AORG%3ACentre%20Jean-Marie%20LARRIEU%0ATITLE%3AResponsable%20Ressources%20Humaines%0ATEL%3Btype%3DWORK%2Cvoice%3A%2B33562913252%0AEMAIL%3Btype%3DINTERNET%3Btype%3DWORK%3Btype%3Dpref%3Amj.ducasse%40cjml.fr%0AADR%3Btype%3DWORK%3A%3B%3B414%20Rue%20du%20Layris%5Cn65710%20CAMPAN%3B%3B%3B%3B%0AEND%3AVCARD" download="Marie-Jo_DUCASSE.vcf" class="button primary">Enregistrer dans mes Contacts</a>
+        <a href="data:text/vcard;charset=utf-8,BEGIN%3AVCARD%0AVERSION%3A3.0%0AN%3ADUCASSE%3BMarie-Jo%3B%3B%3B%0AFN%3AMarie-Jo%20DUCASSE%0AORG%3ACentre%20Jean-Marie%20LARRIEU%0ATITLE%3AResponsable%20Ressources%20Humaines%0ATEL%3Btype%3DWORK%2Cvoice%3A%2B33562913252%0AEMAIL%3Btype%3DINTERNET%3Btype%3DWORK%3Btype%3Dpref%3Amj.ducasse%40cjml.fr%0AADR%3Btype%3DWORK%3A%3B%3B414%20Rue%20du%20Layris%5Cn65710%20CAMPAN%3B%3B%3B%3B%0AEND%3AVCARD" download="Marie-Jo_DUCASSE.vcf" class="button primary" id="saveContactButton">Enregistrer dans mes Contacts</a>
         <hr>
         <div class="contact-info">
             <div class="contact-item"><span class="label">Ligne directe</span><a href="tel:+33562913252">05 62 91 32 52</a></div><div class="contact-item"><span class="label">Email</span><a href="mailto:mj.ducasse@cjml.fr">mj.ducasse@cjml.fr</a></div><div class="contact-item">
@@ -398,18 +464,18 @@
     <a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" rel="noopener noreferrer">414 Rue du Layris - 65710 CAMPAN</a>
 </div>
         </div>
-        <div class="action-buttons">
-            <a href="tel:+33562913252" class="button secondary">Appeler (Direct)</a><a href="tel:+33562913250" class="button secondary">Appeler le Centre</a><a href="mailto:mj.ducasse@cjml.fr" class="button secondary">Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary">Itinéraire</a>
+        <div class="action-buttons" id="actionButtonsContainer">
+            <a href="tel:+33562913252" class="button secondary trackable-action-button" data-analytics-label="Appeler (Direct)">Appeler (Direct)</a><a href="tel:+33562913250" class="button secondary trackable-action-button" data-analytics-label="Appeler (Centre)">Appeler le Centre</a><a href="mailto:mj.ducasse@cjml.fr" class="button secondary trackable-action-button" data-analytics-label="Envoyer Email">Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary trackable-action-button" data-analytics-label="Itinéraire">Itinéraire</a>
         </div>
 
         <div class="bottom-actions-container">
-            <div class="qr-code-small-container" onclick="showQrCodeOverlay()">
+            <div class="qr-code-small-container" id="qrCodeSmallButton" onclick="showQrCodeOverlay()">
                 <img src="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/qrcodes/mj_ducasse_cjml_fr.png" alt="QR Code" class="qr-code-small">
                 <span class="qr-code-text">Scannez<br>ma carte</span>
             </div>
 
             <div class="share-button-container">
-                <button class="share-main-button" onclick="showShareOverlay()">Partager</button>
+                <button class="share-main-button" id="shareButton" onclick="showShareOverlay()">Partager</button>
             </div>
         </div>
     </div>
@@ -423,7 +489,7 @@
             <button class="qr-overlay-close" onclick="hideQrCodeOverlay(event)">×</button>
             <img id="qrOverlayImg" src="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/qrcodes/mj_ducasse_cjml_fr.png" alt="QR Code" class="qr-overlay-img">
             <p class="qr-overlay-text">Scannez ce QR Code pour accéder à la carte de visite de <br><b>Marie-Jo DUCASSE</b></p>
-            <p><a href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/mj_ducasse_cjml_fr.html" target="_blank" class="button primary" style="width: auto; padding: 10px 20px; margin-top: 10px;">Accéder à la page complète</a></p>
+            <p><a href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/mj_ducasse_cjml_fr.html" target="_blank" class="button primary" style="width: auto; padding: 10px 20px; margin-top: 10px;" id="qrOverlayLinkButton">Accéder à la page complète</a></p>
         </div>
     </div>
 
@@ -432,20 +498,29 @@
             <button class="share-overlay-close" onclick="hideShareOverlay(event)">×</button>
             <p class="qr-overlay-text" style="margin-bottom: 0;">Partager la carte de visite de <br><b>Marie-Jo DUCASSE</b></p>
             <div class="share-options-menu">
-                <button class="share-option-button" onclick="handleNativeShare()">Partager (appareil)</button>
-                <a href="mailto:?subject=Carte de Visite de Marie-Jo DUCASSE&body=Découvrez la carte de visite numérique de Marie-Jo DUCASSE : https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/mj_ducasse_cjml_fr.html" class="share-option-button">Envoyer par Email</a>
-                <button class="share-option-button" onclick="copyLink()">Copier le lien</button>
+                <button class="share-option-button" id="nativeShareButton" onclick="handleNativeShare()">Partager (appareil)</button>
+                <a href="mailto:?subject=Carte de Visite de Marie-Jo DUCASSE&body=Découvrez la carte de visite numérique de Marie-Jo DUCASSE : https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/mj_ducasse_cjml_fr.html" class="share-option-button" id="emailShareButton">Envoyer par Email</a>
+                <button class="share-option-button" id="copyLinkShareButton" onclick="copyLink()">Copier le lien</button>
             </div>
         </div>
     </div>
 
+    <div id="cookieConsentBanner">
+        <p>Ce site utilise des cookies à des fins de mesure d'audience anonymisée. Acceptez-vous leur dépôt ?</p>
+        <div class="consent-buttons">
+            <button class="consent-button" id="acceptCookies">Accepter</button>
+            <button class="consent-button deny" id="denyCookies">Refuser</button>
+            <a href="mentions-legales.html" class="consent-button deny" style="text-decoration: none; text-align: center;">En savoir plus</a>
+        </div>
+    </div>
+
     <script>
-        // Fonctions pour l'overlay QR Code
+        // Fonctions existantes pour les overlays
         function showQrCodeOverlay() {
             const overlay = document.getElementById('qrOverlay');
             overlay.classList.add('visible');
             document.body.style.overflow = 'hidden';
-            document.getElementById('shareOverlay').classList.remove('visible'); // Masquer l'overlay de partage si ouvert
+            document.getElementById('shareOverlay').classList.remove('visible');
         }
 
         function hideQrCodeOverlay(event) {
@@ -456,12 +531,11 @@
             }
         }
 
-        // Fonctions pour l'overlay de partage
         function showShareOverlay() {
             const overlay = document.getElementById('shareOverlay');
             overlay.classList.add('visible');
             document.body.style.overflow = 'hidden';
-            document.getElementById('qrOverlay').classList.remove('visible'); // Masquer l'overlay QR si ouvert
+            document.getElementById('qrOverlay').classList.remove('visible');
         }
 
         function hideShareOverlay(event) {
@@ -472,7 +546,6 @@
             }
         }
 
-        // Action de partage native (via Web Share API)
         async function handleNativeShare() {
             const shareData = {
                 title: 'Carte de Visite Numérique de Marie-Jo DUCASSE',
@@ -486,15 +559,13 @@
                     console.log('Partage natif réussi');
                 } catch (err) {
                     console.log('Erreur de partage natif ou annulé: ', err);
-                } finally {
-                    hideShareOverlay(); // Toujours fermer l'overlay après tentative de partage
-                }
+                } // Pas de finally ici pour éviter la fermeture prématurée si l'action n'est pas confirmée immédiatement par l'OS
             } else {
                 alert("La fonction de partage native n'est pas disponible sur votre appareil/navigateur. Veuillez utiliser 'Envoyer par Email' ou 'Copier le lien'.");
             }
+            hideShareOverlay(); // Fermer l'overlay après le déclenchement du partage natif ou l'alerte
         }
 
-        // Action pour copier le lien (Améliorée)
         function copyLink() {
             const linkToCopy = 'https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/mj_ducasse_cjml_fr.html';
             navigator.clipboard.writeText(linkToCopy).then(() => {
@@ -518,9 +589,111 @@
                 }
                 document.body.removeChild(textArea);
             }).finally(() => {
-                hideShareOverlay(); // Fermer l'overlay après l'opération (succès ou échec)
+                hideShareOverlay();
             });
         }
+
+        // --- SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS ---
+        const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // VOTRE ID GA4
+
+        function initializeGoogleAnalytics() {
+            if (window.gaInitialized) return; 
+
+            const gtagScript = document.createElement('script');
+            gtagScript.async = true;
+            gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
+            document.head.appendChild(gtagScript);
+
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('set', { 'card_user_name': 'Marie-Jo DUCASSE' });
+            gtag('config', GA4_MEASUREMENT_ID);
+
+            window.gaInitialized = true; 
+            console.log('Google Analytics initialisé.');
+
+            setupGAEventListeners();
+        }
+
+        function setupGAEventListeners() {
+            const userName = 'Marie-Jo DUCASSE';
+
+            function sendButtonClickEvent(category, label, text) {
+                if (window.gaInitialized) {
+                    gtag('event', 'button_click', {
+                        'event_category': category,
+                        'event_label': label + ' - ' + userName,
+                        'button_text': text
+                    });
+                } else {
+                    console.log('GA non initialisé, clic non tracké:', text);
+                }
+            }
+
+            // Attachement des écouteurs d'événements
+            document.getElementById('saveContactButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Enregistrer Contact', 'Enregistrer dans mes Contacts');
+            });
+            document.getElementById('qrCodeSmallButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Afficher QR Code', 'Scannez ma carte');
+            });
+            document.getElementById('shareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Ouvrir Partage', 'Partager');
+            });
+            document.getElementById('qrOverlayLinkButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Lien Page Complete QR Overlay', 'Accéder à la page complète');
+            });
+            document.getElementById('nativeShareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Partager Natif', 'Partager (appareil)');
+            });
+            document.getElementById('emailShareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Partager Email', 'Envoyer par Email');
+            });
+            document.getElementById('copyLinkShareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Copier Lien Partage', 'Copier le lien');
+            });
+
+            const actionButtonsContainer = document.getElementById('actionButtonsContainer');
+            if (actionButtonsContainer) {
+                actionButtonsContainer.querySelectorAll('a.button, button.button').forEach(button => {
+                    const buttonText = button.textContent.trim() || button.getAttribute('data-analytics-label') || 'Action Button';
+                    button.addEventListener('click', function() {
+                        sendButtonClickEvent('Carte de Visite - Actions', buttonText, buttonText);
+                    });
+                });
+            }
+        }
+
+        // --- GESTION DU BANDEAU DE CONSENTEMENT ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const consentBanner = document.getElementById('cookieConsentBanner');
+            const acceptButton = document.getElementById('acceptCookies');
+            const denyButton = document.getElementById('denyCookies');
+            const consentCookieName = 'cjml_ga_consent'; // Nom du cookie de consentement
+
+            const getConsent = () => localStorage.getItem(consentCookieName);
+
+            if (!getConsent()) {
+                setTimeout(() => { 
+                    consentBanner.classList.add('show');
+                }, 500); 
+            } else if (getConsent() === 'granted') {
+                initializeGoogleAnalytics();
+            }
+
+            acceptButton.addEventListener('click', function() {
+                localStorage.setItem(consentCookieName, 'granted');
+                consentBanner.classList.remove('show');
+                initializeGoogleAnalytics(); 
+            });
+
+            denyButton.addEventListener('click', function() {
+                localStorage.setItem(consentCookieName, 'denied');
+                consentBanner.classList.remove('show');
+            });
+        });
     </script>
 </body>
 </html>
