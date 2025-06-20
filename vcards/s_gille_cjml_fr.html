@@ -372,7 +372,7 @@
             position: fixed;
             bottom: 0;
             left: 0;
-            width: 100vw; 
+            width: 100vw; /* Utilise la largeur de la vue */
             background-color: var(--card-bg);
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             padding: 15px 20px; 
@@ -381,11 +381,11 @@
             align-items: center;
             gap: 15px;
             z-index: 10000;
-            transform: translateY(100%);
+            transform: translateY(100%); /* Masqué par défaut */
             transition: transform 0.3s ease-out;
             opacity: 0;
             visibility: hidden;
-            box-sizing: border-box; 
+            box-sizing: border-box; /* Inclut padding dans la largeur */
         }
         #cookieConsentBanner.show {
             transform: translateY(0);
@@ -397,18 +397,18 @@
             font-size: 0.9em;
             color: var(--text-dark);
             text-align: center;
-            max-width: 600px; 
+            max-width: 600px; /* Limite la largeur du texte sur grands écrans */
         }
         #cookieConsentBanner .consent-buttons {
             display: flex;
-            flex-wrap: wrap; 
+            flex-wrap: wrap; /* Permet aux boutons de passer à la ligne sur mobile */
             justify-content: center;
             gap: 10px;
-            width: 100%; 
-            max-width: 300px; 
+            width: 100%; /* S'étend pour le flex wrap */
+            max-width: 300px; /* Limite la largeur du conteneur de boutons sur grands écrans */
         }
         #cookieConsentBanner .consent-button {
-            flex-grow: 1; 
+            flex-grow: 1; /* Permet aux boutons de prendre la place disponible */
             padding: 10px 18px;
             border-radius: 7px;
             font-weight: 500;
@@ -418,7 +418,7 @@
             background-color: var(--primary-blue);
             color: white;
             transition: background-color 0.2s ease, transform 0.2s ease;
-            box-sizing: border-box; 
+            box-sizing: border-box; /* Inclut padding dans la largeur des boutons */
         }
         #cookieConsentBanner .consent-button.deny {
             background-color: #f0f0f0;
@@ -429,20 +429,21 @@
             opacity: 0.9;
             transform: translateY(-1px);
         }
+        /* Ajustements pour les petits écrans */
         @media (max-width: 480px) {
             #cookieConsentBanner {
-                padding: 15px; 
+                padding: 15px; /* Ajuste le padding sur les très petits écrans */
             }
             #cookieConsentBanner p {
                 font-size: 0.85em;
             }
             #cookieConsentBanner .consent-buttons {
-                flex-direction: column; 
-                width: 100%; 
-                max-width: none; 
+                flex-direction: column; /* Les boutons s'empilent */
+                width: 100%; /* Les boutons prennent toute la largeur disponible */
+                max-width: none; /* Pas de limite de largeur */
             }
             #cookieConsentBanner .consent-button {
-                width: 100%; 
+                width: 100%; /* Les boutons prennent toute la largeur */
                 text-align: center;
             }
         }
@@ -560,7 +561,7 @@
                     console.log('Partage natif réussi');
                 } catch (err) {
                     console.log('Erreur de partage natif ou annulé: ', err);
-                } // Pas de finally ici pour éviter la fermeture prématurée si l'action n'est pas confirmée immédiatement par l'OS
+                } 
             } else {
                 alert("La fonction de partage native n'est pas disponible sur votre appareil/navigateur. Veuillez utiliser 'Envoyer par Email' ou 'Copier le lien'.");
             }
@@ -615,7 +616,13 @@
             window.gaInitialized = true; 
             console.log('Google Analytics initialisé.');
 
-            setupGAEventListeners();
+            // Déclenchement des écouteurs d'événements GA4 APRÈS INITIALISATION
+            // On s'assure que le DOM est bien chargé avant d'attacher les écouteurs.
+            if (document.readyState === 'loading') { // Loading, still parsing
+                document.addEventListener('DOMContentLoaded', setupGAEventListeners);
+            } else { // Already loaded or interactive
+                setupGAEventListeners();
+            }
         }
 
         function setupGAEventListeners() {
@@ -628,12 +635,13 @@
                         'event_label': label + ' - ' + userName,
                         'button_text': text
                     });
+                    console.log('GA Event Sent: ', category, label, text); // Pour débogage
                 } else {
                     console.log('GA non initialisé, clic non tracké:', text);
                 }
             }
 
-            // Attachement des écouteurs d'événements
+            // Attachement des écouteurs d'événements - Utilisation de '?' pour la robustesse
             document.getElementById('saveContactButton')?.addEventListener('click', function() {
                 sendButtonClickEvent('Carte de Visite', 'Enregistrer Contact', 'Enregistrer dans mes Contacts');
             });
@@ -665,6 +673,7 @@
                     });
                 });
             }
+            console.log('Écouteurs d\'événements GA attachés.'); // Pour débogage
         }
 
         // --- GESTION DU BANDEAU DE CONSENTEMENT ---
@@ -672,12 +681,12 @@
             const consentBanner = document.getElementById('cookieConsentBanner');
             const acceptButton = document.getElementById('acceptCookies');
             const denyButton = document.getElementById('denyCookies');
-            const consentCookieName = 'cjml_ga_consent'; // Nom du cookie de consentement
+            const consentCookieName = 'cjml_ga_consent';
 
             const getConsent = () => localStorage.getItem(consentCookieName);
 
             if (!getConsent()) {
-                setTimeout(() => { 
+                setTimeout(() => {
                     consentBanner.classList.add('show');
                 }, 500); 
             } else if (getConsent() === 'granted') {
@@ -687,12 +696,14 @@
             acceptButton.addEventListener('click', function() {
                 localStorage.setItem(consentCookieName, 'granted');
                 consentBanner.classList.remove('show');
-                initializeGoogleAnalytics(); 
+                initializeGoogleAnalytics();
             });
 
             denyButton.addEventListener('click', function() {
                 localStorage.setItem(consentCookieName, 'denied');
                 consentBanner.classList.remove('show');
+                // Optionnel: supprimer les cookies existants si vous voulez être super strict.
+                // pour GA4, c'est généralement géré par le fait de ne pas initialiser le script.
             });
         });
     </script>
