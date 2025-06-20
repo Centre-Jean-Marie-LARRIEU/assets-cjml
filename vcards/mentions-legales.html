@@ -54,11 +54,19 @@
         }
         /* Style pour les sous-titres de niveau 3 (Utilisé pour les sous-sections GA4) */
         h3 {
-            color: var(--primary-blue); /* Ou une autre couleur de votre charte si préférée pour les sous-sections */
+            color: var(--primary-blue);
             font-weight: 500;
             font-size: 1.2em;
             margin-top: 25px;
             margin-bottom: 10px;
+        }
+        /* Style pour les sous-titres de niveau 4 (Utilisé pour les sous-sous-sections GA4) */
+        h4 {
+            color: var(--text-dark);
+            font-weight: 500;
+            font-size: 1.1em;
+            margin-top: 15px;
+            margin-bottom: 8px;
         }
 
         p, li {
@@ -89,7 +97,44 @@
         }
 
     </style>
-    <link rel="icon" href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/favicon.ico" type="image/x-icon">
+    <script>
+        const GA4_MEASUREMENT_ID = 'G-YQ4EXEL7JS'; // <-- REMPLACEZ PAR L\'ID DE VOTRE NOUVELLE PROPRIÉTÉ GA4
+
+        // Fonction pour initialiser Google Analytics
+        function initializeGoogleAnalyticsML() {
+            if (window.gaInitializedML) return; // Empêcher les initialisations multiples
+
+            const gtagScript = document.createElement('script');
+            gtagScript.async = true;
+            gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
+            document.head.appendChild(gtagScript);
+
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            // Pour les mentions légales, on n'a pas de 'user_full_name' dynamique ici,
+            // mais on peut envoyer un nom de page spécifique
+            gtag('config', GA4_MEASUREMENT_ID, {
+                'page_title': 'Mentions Légales',
+                'page_path': '/mentions-legales.html'
+            });
+
+            window.gaInitializedML = true; // Marque l'initialisation
+            console.log('Google Analytics initialisé pour les mentions légales.');
+        }
+
+        // Vérifier si le consentement a été donné sur la carte de visite.
+        // On suppose que le cookie de consentement est partagé via localStorage.
+        document.addEventListener('DOMContentLoaded', function() {
+            const consentCookieName = 'cjml_ga_consent';
+            if (localStorage.getItem(consentCookieName) === 'granted') {
+                initializeGoogleAnalyticsML();
+            } else {
+                console.log('Consentement non accordé ou refusé, Google Analytics non initialisé sur les mentions légales.');
+            }
+        });
+    </script>
 </head>
 <body>
     <div class="legal-container">
@@ -124,13 +169,18 @@
             Ce site est une carte de visite numérique à usage professionnel. À ce titre, il traite deux types de données personnelles :
         </p>
         <ul>
-            <li><strong>Les données affichées sur la page :</strong> Le nom, la fonction et les coordonnées professionnelles de la personne concernée sont affichés dans le but de faciliter la prise de contact professionnel. Le traitement de ces données est fondé sur l'intérêt légitime de l'éditeur à des fins de communication professionnelle.</li>
+            <li>
+                <strong>Les données affichées sur la page :</strong> Le nom, la fonction et les coordonnées professionnelles de la personne concernée sont affichés dans le but de faciliter la prise de contact professionnel. Le traitement de ces données est fondé sur l'intérêt légitime de l'éditeur à des fins de communication professionnelle.
+                <br>La durée de conservation de ces données affichées est liée à la période d'activité de l'agent au sein du Centre Jean-Marie Larrieu. La carte numérique associée sera désactivée ou supprimée sans délai excessif après son départ du Centre (généralement sous 30 jours calendaires).
+            </li>
             <li><strong>Les données collectées par l'hébergeur :</strong> Lors de votre navigation, l'hébergeur (GitHub, Inc.) est susceptible de collecter automatiquement des données techniques, telles que votre adresse IP, à des fins de sécurité et de bon fonctionnement du service. Ce traitement est fondé sur l'intérêt légitime de l'hébergeur.</li>
         </ul>
 
-        <h2>Utilisation de Google Analytics 4 (Mesure d'audience)</h2>
+        <p>L'éditeur du site ne procède à aucune collecte active de données personnelles (formulaire, inscription, etc.) et n'utilise les informations à aucune autre fin que celles décrites ci-dessus.</p>
+
+        <h3>Utilisation de Google Analytics 4 (Mesure d'audience)</h3>
         <p>
-            Ce site utilise <strong>Google Analytics 4 (GA4)</strong>, un service d'analyse d'audience fourni par Google Ireland Limited ("Google"). GA4 nous aide à comprendre comment les visiteurs interagissent avec nos cartes de visite numériques, notamment les pages consultées, les liens cliqués et les informations sur les appareils utilisés (ordinateur, mobile). Ces données sont collectées dans le but exclusif de mesurer l'audience et d'améliorer l'expérience utilisateur de nos cartes de visite.
+            Ce site utilise **Google Analytics 4 (GA4)**, un service d'analyse d'audience fourni par Google Ireland Limited ("Google"). GA4 nous aide à comprendre comment les visiteurs interagissent avec nos cartes de visite numériques, notamment les pages consultées, les liens cliqués et les informations sur les appareils utilisés (ordinateur, mobile). Ces données sont collectées dans le but exclusif de mesurer l'audience et d'améliorer l'expérience utilisateur de nos cartes de visite.
         </p>
         <p>
             Les données collectées par Google Analytics 4 incluent, entre autres, l'adresse IP (anonymisée), la date et l'heure de la visite, le type d'appareil, le système d'exploitation et le navigateur utilisé. Ces informations sont agrégées et anonymisées dans la mesure du possible et ne sont pas utilisées pour identifier personnellement les visiteurs.
@@ -139,22 +189,20 @@
             Les données sont traitées par Google pour le compte du Centre Jean-Marie Larrieu. Google est certifié conforme au cadre de protection des données UE-États-Unis (EU-US Data Privacy Framework) garantissant un niveau de protection adéquat pour les transferts de données personnelles vers les États-Unis. Pour en savoir plus sur la politique de confidentialité de Google Analytics, veuillez consulter : <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Politique de confidentialité de Google</a>.
         </p>
         
-        <h3>Cookies liés à Google Analytics</h3>
+        <h4>Cookies liés à Google Analytics</h4>
         <p>
-            Google Analytics 4 utilise des cookies pour collecter des informations sur votre interaction avec le site, y compris le nombre de visites, les pages visitées et la durée de la visite. Ces cookies sont déposés par le domaine du site. Le principal cookie utilisé est `_ga`, et des cookies supplémentaires comme `_ga_2MWWE56469` peuvent être déposés. La durée de vie de ces cookies est généralement de 13 mois pour `_ga`.
+            Google Analytics 4 utilise des cookies pour collecter des informations sur votre interaction avec le site, y compris le nombre de visites, les pages visitées et la durée de la visite. Ces cookies sont déposés par le domaine du site. Le principal cookie utilisé est `_ga`, et des cookies supplémentaires comme `_ga_YQ4EXEL7JS peuvent être déposés. La durée de vie de ces cookies est généralement de 13 mois pour `_ga`.
         </p>
         
-        <h3>Option d'Opposition (Opt-out)</h3>
+        <h4>Option d'Opposition (Opt-out)</h4>
         <p>
             Si vous ne souhaitez pas que vos données de navigation soient utilisées par Google Analytics, vous pouvez installer le module complémentaire de navigateur pour la désactivation de Google Analytics. Ce module est compatible avec la plupart des navigateurs modernes :
             <br><a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">Module complémentaire de navigateur pour la désactivation de Google Analytics</a>
         </p>
-        
-        <p>L'éditeur du site ne procède à aucune collecte active de données personnelles (formulaire, inscription, etc.) et n'utilise les informations à aucune autre fin que celles décrites ci-dessus.</p>
-        
+
         <h2>Cookies</h2>
         <p>
-            Ce site utilise des cookies uniquement à des fins de <strong>mesure d'audience anonymisée via Google Analytics 4</strong>, comme détaillé dans la section "Utilisation de Google Analytics 4". Seuls des cookies techniques strictement nécessaires au fonctionnement du service par l'hébergeur (GitHub Pages) pourraient également être déposés, lesquels ne requièrent pas de consentement préalable.
+            Ce site utilise des cookies uniquement à des fins de **mesure d'audience anonymisée via Google Analytics 4**, comme détaillé dans la section "Utilisation de Google Analytics 4". Seuls des cookies techniques strictement nécessaires au fonctionnement du service par l'hébergeur (GitHub Pages) pourraient également être déposés, lesquels ne requièrent pas de consentement préalable.
         </p>
 
         <h2>Droits de l'utilisateur</h2>
