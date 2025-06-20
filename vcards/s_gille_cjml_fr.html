@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial="user_full_name",initial-scale=1.0">
     <title>Contact - Sébastien GILLE</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -28,7 +28,7 @@
             box-sizing: border-box;
             line-height: 1.5;
             color: var(--text-dark);
-            overflow-x: hidden; /* Pour éviter le scroll horizontal sur mobile */
+            overflow-x: hidden;
         }
         .card {
             background-color: var(--card-bg);
@@ -372,20 +372,20 @@
             position: fixed;
             bottom: 0;
             left: 0;
-            width: 100vw; /* Utilise la largeur de la vue */
+            width: 100vw;
             background-color: var(--card-bg);
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            padding: 15px 20px; 
+            padding: 15px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 15px;
             z-index: 10000;
-            transform: translateY(100%); /* Masqué par défaut */
+            transform: translateY(100%);
             transition: transform 0.3s ease-out;
             opacity: 0;
             visibility: hidden;
-            box-sizing: border-box; /* Inclut padding dans la largeur */
+            box-sizing: border-box;
         }
         #cookieConsentBanner.show {
             transform: translateY(0);
@@ -397,18 +397,18 @@
             font-size: 0.9em;
             color: var(--text-dark);
             text-align: center;
-            max-width: 600px; /* Limite la largeur du texte sur grands écrans */
+            max-width: 600px;
         }
         #cookieConsentBanner .consent-buttons {
             display: flex;
-            flex-wrap: wrap; /* Permet aux boutons de passer à la ligne sur mobile */
+            flex-wrap: wrap;
             justify-content: center;
             gap: 10px;
-            width: 100%; /* S'étend pour le flex wrap */
-            max-width: 300px; /* Limite la largeur du conteneur de boutons sur grands écrans */
+            width: 100%;
+            max-width: 300px;
         }
         #cookieConsentBanner .consent-button {
-            flex-grow: 1; /* Permet aux boutons de prendre la place disponible */
+            flex-grow: 1;
             padding: 10px 18px;
             border-radius: 7px;
             font-weight: 500;
@@ -418,7 +418,7 @@
             background-color: var(--primary-blue);
             color: white;
             transition: background-color 0.2s ease, transform 0.2s ease;
-            box-sizing: border-box; /* Inclut padding dans la largeur des boutons */
+            box-sizing: border-box;
         }
         #cookieConsentBanner .consent-button.deny {
             background-color: #f0f0f0;
@@ -429,21 +429,20 @@
             opacity: 0.9;
             transform: translateY(-1px);
         }
-        /* Ajustements pour les petits écrans */
         @media (max-width: 480px) {
             #cookieConsentBanner {
-                padding: 15px; /* Ajuste le padding sur les très petits écrans */
+                padding: 15px;
             }
             #cookieConsentBanner p {
                 font-size: 0.85em;
             }
             #cookieConsentBanner .consent-buttons {
-                flex-direction: column; /* Les boutons s'empilent */
-                width: 100%; /* Les boutons prennent toute la largeur disponible */
-                max-width: none; /* Pas de limite de largeur */
+                flex-direction: column;
+                width: 100%;
+                max-width: none;
             }
             #cookieConsentBanner .consent-button {
-                width: 100%; /* Les boutons prennent toute la largeur */
+                width: 100%;
                 text-align: center;
             }
         }
@@ -565,7 +564,7 @@
             } else {
                 alert("La fonction de partage native n'est pas disponible sur votre appareil/navigateur. Veuillez utiliser 'Envoyer par Email' ou 'Copier le lien'.");
             }
-            hideShareOverlay(); // Fermer l'overlay après le déclenchement du partage natif ou l'alerte
+            hideShareOverlay();
         }
 
         function copyLink() {
@@ -635,7 +634,7 @@
                         'event_label': label + ' - ' + userName,
                         'button_text': text
                     });
-                    console.log('GA Event Sent: ', category, label, text); // Pour débogage
+                    console.log('GA Event Sent: ', category, label, text);
                 } else {
                     console.log('GA non initialisé, clic non tracké:', text);
                 }
@@ -673,7 +672,7 @@
                     });
                 });
             }
-            console.log('Écouteurs d\'événements GA attachés.'); // Pour débogage
+            console.log('Écouteurs d\'événements GA attachés.');
         }
 
         // --- GESTION DU BANDEAU DE CONSENTEMENT ---
