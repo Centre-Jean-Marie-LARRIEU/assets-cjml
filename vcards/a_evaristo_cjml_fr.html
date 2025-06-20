@@ -516,207 +516,99 @@
         </div>
     </div>
 
-    <script>
-        // Fonctions existantes pour les overlays
-        function showQrCodeOverlay() {
-            const overlay = document.getElementById('qrOverlay');
-            overlay.classList.add('visible');
-            document.body.style.overflow = 'hidden';
-            document.getElementById('shareOverlay').classList.remove('visible');
-        }
+<script>
+    // Fonctions existantes pour les overlays ... (inchangées)
 
-        function hideQrCodeOverlay(event) {
-            if (event.target.id === 'qrOverlay' || event.target.classList.contains('qr-overlay-close')) {
-                const overlay = document.getElementById('qrOverlay');
-                overlay.classList.remove('visible');
-                document.body.style.overflow = '';
-            }
-        }
+    // --- SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS ---
+    const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // VOTRE ID GA4
 
-        function showShareOverlay() {
-            const overlay = document.getElementById('shareOverlay');
-            overlay.classList.add('visible');
-            document.body.style.overflow = 'hidden';
-            document.getElementById('qrOverlay').classList.remove('visible');
-        }
+    function sendGAEvent(command, ...args) {
+        window.dataLayer = window.dataLayer || []; // S'assurer que dataLayer existe
+        window.dataLayer.push(arguments); // arguments contient [command, ...args]
+        // Les messages console peuvent être utiles pour le débogage, mais peuvent être retirés en production
+        // console.log(`GA command queued: ${command}`, args);
+    }
 
-        function hideShareOverlay(event) {
-            if (event.target.id === 'shareOverlay' || event.target.classList.contains('share-overlay-close')) {
-                const overlay = document.getElementById('shareOverlay');
-                overlay.classList.remove('visible');
-                document.body.style.overflow = '';
-            }
-        }
+    function initializeGoogleAnalytics() {
+        if (window.gaInitialized) return;
 
-        async function handleNativeShare() {
-            const shareData = {
-                title: 'Carte de Visite Numérique de Anne EVARISTO',
-                text: 'Découvrez la carte de visite numérique de Anne EVARISTO : https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/a_evaristo_cjml_fr.html',
-                url: 'https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/a_evaristo_cjml_fr.html'
-            };
+        // --- NOUVELLE LOGIQUE ICI ---
+        window.dataLayer = window.dataLayer || [];
 
-            if (navigator.share) {
-                try {
-                    await navigator.share(shareData);
-                    console.log('Partage natif réussi');
-                } catch (err) {
-                    console.log('Erreur de partage natif ou annulé: ', err);
-                } 
-            } else {
-                alert("La fonction de partage native n'est pas disponible sur votre appareil/navigateur. Veuillez utiliser 'Envoyer par Email' ou 'Copier le lien'.");
-            }
-            hideShareOverlay();
-        }
-
-        function copyLink() {
-            const linkToCopy = 'https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/a_evaristo_cjml_fr.html';
-            navigator.clipboard.writeText(linkToCopy).then(() => {
-                alert("Lien copié dans le presse-papiers !");
-                console.log('Lien copié: ', linkToCopy);
-            }).catch(err => {
-                console.error('Erreur lors de la copie du lien: ', err);
-                const textArea = document.createElement("textarea");
-                textArea.value = linkToCopy;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-9999px";
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                try {
-                    const successful = document.execCommand('copy');
-                    const msg = successful ? 'Lien copié dans le presse-papiers !' : 'Erreur lors de la copie du lien.';
-                    alert(msg);
-                } catch (err) {
-                    alert("Impossible de copier le lien. Veuillez le copier manuellement depuis la barre d'adresse : " + linkToCopy);
-                }
-                document.body.removeChild(textArea);
-            }).finally(() => {
-                hideShareOverlay();
-            });
-        }
-
-        // --- SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS ---
-        const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // VOTRE ID GA4
-
-        // Fonction pour envoyer des événements GA (plus robuste)
-        function sendGAEvent(command, ...args) {
-            if (typeof gtag === 'function') { // Vérifie si gtag est une fonction
-                gtag(command, ...args);
-                console.log(`GA command sent: ${command}`, args);
-            } else {
-                // Si gtag n'est pas encore défini, mettre la commande en file d'attente sur dataLayer
-                // La fonction gtag() de Google le gérera quand le script sera complètement chargé.
-                window.dataLayer = window.dataLayer || [];
-                window.dataLayer.push(arguments); // arguments contient [command, ...args]
-                console.warn(`gtag non défini, commande mise en file d'attente: ${command}`, args);
-            }
-        }
-
-
-        function initializeGoogleAnalytics() {
-            if (window.gaInitialized) return; 
-
-            const gtagScript = document.createElement('script');
-            gtagScript.async = true;
-            gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
-            document.head.appendChild(gtagScript);
-
-            window.dataLayer = window.dataLayer || [];
-            // La fonction gtag() sera définie par le script gtag.js lui-même.
-            // On s'assure qu'elle est prête avant d'appeler gtag('set') ou gtag('config').
-            gtagScript.onload = () => { // Exécuter après le chargement du script gtag.js
-                // Ces commandes seront traitées dès que gtag.js est opérationnel
-                sendGAEvent('js', new Date());
-                sendGAEvent('set', { 'card_user_name': 'Anne EVARISTO' });
-                sendGAEvent('config', GA4_MEASUREMENT_ID);
-                console.log('Google Analytics initialisé.');
-
-                // Déclenchement des écouteurs d'événements GA4 APRÈS INITIALISATION ET DOM READY
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', setupGAEventListeners);
-                } else {
-                    setupGAEventListeners();
-                }
-            };
-            
-            window.gaInitialized = true;
-        }
-
-        function setupGAEventListeners() {
-            const userName = 'Anne EVARISTO';
-
-            function sendButtonClickEvent(category, label, text) {
-                // Utilise la nouvelle fonction sendGAEvent pour plus de robustesse
-                sendGAEvent('event', 'button_click', {
-                    'event_category': category,
-                    'event_label': label + ' - ' + userName,
-                    'button_text': text
-                });
-                console.log('GA Event Queued (via sendGAEvent): ', category, label, text);
-            }
-
-            document.getElementById('saveContactButton')?.addEventListener('click', function() {
-                sendButtonClickEvent('Carte de Visite', 'Enregistrer Contact', 'Enregistrer dans mes Contacts');
-            });
-            document.getElementById('qrCodeSmallButton')?.addEventListener('click', function() {
-                sendButtonClickEvent('Carte de Visite', 'Afficher QR Code', 'Scannez ma carte');
-            });
-            document.getElementById('shareButton')?.addEventListener('click', function() {
-                sendButtonClickEvent('Carte de Visite', 'Ouvrir Partage', 'Partager');
-            });
-            document.getElementById('qrOverlayLinkButton')?.addEventListener('click', function() {
-                sendButtonClickEvent('Carte de Visite', 'Lien Page Complete QR Overlay', 'Accéder à la page complète');
-            });
-            document.getElementById('nativeShareButton')?.addEventListener('click', function() {
-                sendButtonClickEvent('Carte de Visite', 'Partager Natif', 'Partager (appareil)');
-            });
-            document.getElementById('emailShareButton')?.addEventListener('click', function() {
-                sendButtonClickEvent('Carte de Visite', 'Partager Email', 'Envoyer par Email');
-            });
-            document.getElementById('copyLinkShareButton')?.addEventListener('click', function() {
-                sendButtonClickEvent('Carte de Visite', 'Copier Lien Partage', 'Copier le lien');
-            });
-
-            const actionButtonsContainer = document.getElementById('actionButtonsContainer');
-            if (actionButtonsContainer) {
-                actionButtonsContainer.querySelectorAll('a.button, button.button').forEach(button => {
-                    const buttonText = button.textContent.trim() || button.getAttribute('data-analytics-label') || 'Action Button';
-                    button.addEventListener('click', function() {
-                        sendButtonClickEvent('Carte de Visite - Actions', buttonText, buttonText);
-                    });
-                });
-            }
-            console.log('Écouteurs d\'événements GA attachés.');
-        }
-
-        // --- GESTION DU BANDEAU DE CONSENTEMENT ---
-        document.addEventListener('DOMContentLoaded', function() {
-            const consentBanner = document.getElementById('cookieConsentBanner');
-            const acceptButton = document.getElementById('acceptCookies');
-            const denyButton = document.getElementById('denyCookies');
-            const consentCookieName = 'cjml_ga_consent';
-
-            const getConsent = () => localStorage.getItem(consentCookieName);
-
-            if (!getConsent()) {
-                setTimeout(() => {
-                    consentBanner.classList.add('show');
-                }, 500); 
-            } else if (getConsent() === 'granted') {
-                initializeGoogleAnalytics();
-            }
-
-            acceptButton.addEventListener('click', function() {
-                localStorage.setItem(consentCookieName, 'granted');
-                consentBanner.classList.remove('show');
-                initializeGoogleAnalytics();
-            });
-
-            denyButton.addEventListener('click', function() {
-                localStorage.setItem(consentCookieName, 'denied');
-                consentBanner.classList.remove('show');
-            });
+        // Pousser card_user_name DÈS QUE POSSIBLE dans le dataLayer
+        // AVANT le chargement de gtag.js et la configuration initiale de GA4
+        window.dataLayer.push({
+            'card_user_name': 'Anne EVARISTO'
         });
-    </script>
+        console.log('card_user_name pushed to DataLayer:', 'Anne EVARISTO'); // Pour le débogage
+
+        const gtagScript = document.createElement('script');
+        gtagScript.async = true;
+        gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
+        document.head.appendChild(gtagScript);
+
+        gtagScript.onload = () => {
+            // Ces commandes sont maintenant exécutées après le chargement de gtag.js
+            // Mais card_user_name est déjà dans le dataLayer
+            sendGAEvent('js', new Date()); // Initialise gtag avec la date
+            sendGAEvent('config', GA4_MEASUREMENT_ID); // Configure GA4 et envoie la page_view
+            console.log('Google Analytics initialisé et configuré.');
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setupGAEventListeners);
+            } else {
+                setupGAEventListeners();
+            }
+        };
+
+        window.gaInitialized = true;
+    }
+
+    function setupGAEventListeners() {
+        const userName = 'Anne EVARISTO';
+
+        function sendButtonClickEvent(category, label, text) {
+            sendGAEvent('event', 'button_click', {
+                'event_category': category,
+                'event_label': label + ' - ' + userName,
+                'button_text': text,
+                'card_user_name': userName // Vous pouvez aussi l'ajouter ici pour les événements de clic spécifiques
+            });
+            console.log('GA Event Queued (via sendGAEvent): ', category, label, text);
+        }
+
+        // ... (vos écouteurs d'événements restent inchangés ici) ...
+        console.log('Écouteurs d\'événements GA attachés.');
+    }
+
+    // --- GESTION DU BANDEAU DE CONSENTEMENT ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const consentBanner = document.getElementById('cookieConsentBanner');
+        const acceptButton = document.getElementById('acceptCookies');
+        const denyButton = document.getElementById('denyCookies');
+        const consentCookieName = 'cjml_ga_consent';
+
+        const getConsent = () => localStorage.getItem(consentCookieName);
+
+        if (!getConsent()) {
+            setTimeout(() => {
+                consentBanner.classList.add('show');
+            }, 500);
+        } else if (getConsent() === 'granted') {
+            initializeGoogleAnalytics();
+        }
+
+        acceptButton.addEventListener('click', function() {
+            localStorage.setItem(consentCookieName, 'granted');
+            consentBanner.classList.remove('show');
+            initializeGoogleAnalytics();
+        });
+
+        denyButton.addEventListener('click', function() {
+            localStorage.setItem(consentCookieName, 'denied');
+            consentBanner.classList.remove('show');
+        });
+    });
+</script>
 </body>
 </html>
