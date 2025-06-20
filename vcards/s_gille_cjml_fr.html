@@ -2,8 +2,9 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial="user_full_name",initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - Sébastien GILLE</title>
+    <link rel="icon" href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -597,6 +598,21 @@
         // --- SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS ---
         const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // VOTRE ID GA4
 
+        // Fonction pour envoyer des événements GA (plus robuste)
+        function sendGAEvent(command, ...args) {
+            if (typeof gtag === 'function') { // Vérifie si gtag est une fonction
+                gtag(command, ...args);
+                console.log(`GA command sent: ${command}`, args);
+            } else {
+                // Si gtag n'est pas encore défini, mettre la commande en file d'attente sur dataLayer
+                // La fonction gtag() de Google le gérera quand le script sera complètement chargé.
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push(arguments); // arguments contient [command, ...args]
+                console.warn(`gtag non défini, commande mise en file d'attente: ${command}`, args);
+            }
+        }
+
+
         function initializeGoogleAnalytics() {
             if (window.gaInitialized) return; 
 
@@ -606,41 +622,39 @@
             document.head.appendChild(gtagScript);
 
             window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
+            // La fonction gtag() sera définie par le script gtag.js lui-même.
+            // On s'assure qu'elle est prête avant d'appeler gtag('set') ou gtag('config').
+            gtagScript.onload = () => { // Exécuter après le chargement du script gtag.js
+                // Ces commandes seront traitées dès que gtag.js est opérationnel
+                sendGAEvent('js', new Date());
+                sendGAEvent('set', { 'card_user_name': 'Sébastien GILLE' });
+                sendGAEvent('config', GA4_MEASUREMENT_ID);
+                console.log('Google Analytics initialisé.');
 
-            gtag('set', { 'card_user_name': 'Sébastien GILLE' });
-            gtag('config', GA4_MEASUREMENT_ID);
-
-            window.gaInitialized = true; 
-            console.log('Google Analytics initialisé.');
-
-            // Déclenchement des écouteurs d'événements GA4 APRÈS INITIALISATION
-            // On s'assure que le DOM est bien chargé avant d'attacher les écouteurs.
-            if (document.readyState === 'loading') { // Loading, still parsing
-                document.addEventListener('DOMContentLoaded', setupGAEventListeners);
-            } else { // Already loaded or interactive
-                setupGAEventListeners();
-            }
+                // Déclenchement des écouteurs d'événements GA4 APRÈS INITIALISATION ET DOM READY
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', setupGAEventListeners);
+                } else {
+                    setupGAEventListeners();
+                }
+            };
+            
+            window.gaInitialized = true;
         }
 
         function setupGAEventListeners() {
             const userName = 'Sébastien GILLE';
 
             function sendButtonClickEvent(category, label, text) {
-                if (window.gaInitialized) {
-                    gtag('event', 'button_click', {
-                        'event_category': category,
-                        'event_label': label + ' - ' + userName,
-                        'button_text': text
-                    });
-                    console.log('GA Event Sent: ', category, label, text);
-                } else {
-                    console.log('GA non initialisé, clic non tracké:', text);
-                }
+                // Utilise la nouvelle fonction sendGAEvent pour plus de robustesse
+                sendGAEvent('event', 'button_click', {
+                    'event_category': category,
+                    'event_label': label + ' - ' + userName,
+                    'button_text': text
+                });
+                console.log('GA Event Queued (via sendGAEvent): ', category, label, text);
             }
 
-            // Attachement des écouteurs d'événements - Utilisation de '?' pour la robustesse
             document.getElementById('saveContactButton')?.addEventListener('click', function() {
                 sendButtonClickEvent('Carte de Visite', 'Enregistrer Contact', 'Enregistrer dans mes Contacts');
             });
@@ -701,8 +715,6 @@
             denyButton.addEventListener('click', function() {
                 localStorage.setItem(consentCookieName, 'denied');
                 consentBanner.classList.remove('show');
-                // Optionnel: supprimer les cookies existants si vous voulez être super strict.
-                // pour GA4, c'est généralement géré par le fait de ne pas initialiser le script.
             });
         });
     </script>
