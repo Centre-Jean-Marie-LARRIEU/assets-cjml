@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - Anne EVARISTO</title>
+    <link rel="icon" href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -28,7 +29,7 @@
             box-sizing: border-box;
             line-height: 1.5;
             color: var(--text-dark);
-            overflow-x: hidden; /* Pour éviter le scroll horizontal sur mobile */
+            overflow-x: hidden;
         }
         .card {
             background-color: var(--card-bg);
@@ -372,10 +373,10 @@
             position: fixed;
             bottom: 0;
             left: 0;
-            width: 100vw; 
+            width: 100vw;
             background-color: var(--card-bg);
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            padding: 15px 20px; 
+            padding: 15px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -385,7 +386,7 @@
             transition: transform 0.3s ease-out;
             opacity: 0;
             visibility: hidden;
-            box-sizing: border-box; 
+            box-sizing: border-box;
         }
         #cookieConsentBanner.show {
             transform: translateY(0);
@@ -397,18 +398,18 @@
             font-size: 0.9em;
             color: var(--text-dark);
             text-align: center;
-            max-width: 600px; 
+            max-width: 600px;
         }
         #cookieConsentBanner .consent-buttons {
             display: flex;
-            flex-wrap: wrap; 
+            flex-wrap: wrap;
             justify-content: center;
             gap: 10px;
-            width: 100%; 
-            max-width: 300px; 
+            width: 100%;
+            max-width: 300px;
         }
         #cookieConsentBanner .consent-button {
-            flex-grow: 1; 
+            flex-grow: 1;
             padding: 10px 18px;
             border-radius: 7px;
             font-weight: 500;
@@ -418,7 +419,7 @@
             background-color: var(--primary-blue);
             color: white;
             transition: background-color 0.2s ease, transform 0.2s ease;
-            box-sizing: border-box; 
+            box-sizing: border-box;
         }
         #cookieConsentBanner .consent-button.deny {
             background-color: #f0f0f0;
@@ -431,18 +432,18 @@
         }
         @media (max-width: 480px) {
             #cookieConsentBanner {
-                padding: 15px; 
+                padding: 15px;
             }
             #cookieConsentBanner p {
                 font-size: 0.85em;
             }
             #cookieConsentBanner .consent-buttons {
-                flex-direction: column; 
-                width: 100%; 
-                max-width: none; 
+                flex-direction: column;
+                width: 100%;
+                max-width: none;
             }
             #cookieConsentBanner .consent-button {
-                width: 100%; 
+                width: 100%;
                 text-align: center;
             }
         }
@@ -560,11 +561,11 @@
                     console.log('Partage natif réussi');
                 } catch (err) {
                     console.log('Erreur de partage natif ou annulé: ', err);
-                } // Pas de finally ici pour éviter la fermeture prématurée si l'action n'est pas confirmée immédiatement par l'OS
+                } 
             } else {
                 alert("La fonction de partage native n'est pas disponible sur votre appareil/navigateur. Veuillez utiliser 'Envoyer par Email' ou 'Copier le lien'.");
             }
-            hideShareOverlay(); // Fermer l'overlay après le déclenchement du partage natif ou l'alerte
+            hideShareOverlay();
         }
 
         function copyLink() {
@@ -597,6 +598,21 @@
         // --- SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS ---
         const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // VOTRE ID GA4
 
+        // Fonction pour envoyer des événements GA (plus robuste)
+        function sendGAEvent(command, ...args) {
+            if (typeof gtag === 'function') { // Vérifie si gtag est une fonction
+                gtag(command, ...args);
+                console.log(`GA command sent: ${command}`, args);
+            } else {
+                // Si gtag n'est pas encore défini, mettre la commande en file d'attente sur dataLayer
+                // La fonction gtag() de Google le gérera quand le script sera complètement chargé.
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push(arguments); // arguments contient [command, ...args]
+                console.warn(`gtag non défini, commande mise en file d'attente: ${command}`, args);
+            }
+        }
+
+
         function initializeGoogleAnalytics() {
             if (window.gaInitialized) return; 
 
@@ -606,34 +622,39 @@
             document.head.appendChild(gtagScript);
 
             window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
+            // La fonction gtag() sera définie par le script gtag.js lui-même.
+            // On s'assure qu'elle est prête avant d'appeler gtag('set') ou gtag('config').
+            gtagScript.onload = () => { // Exécuter après le chargement du script gtag.js
+                // Ces commandes seront traitées dès que gtag.js est opérationnel
+                sendGAEvent('js', new Date());
+                sendGAEvent('set', { 'card_user_name': 'Anne EVARISTO' });
+                sendGAEvent('config', GA4_MEASUREMENT_ID);
+                console.log('Google Analytics initialisé.');
 
-            gtag('set', { 'card_user_name': 'Anne EVARISTO' });
-            gtag('config', GA4_MEASUREMENT_ID);
-
-            window.gaInitialized = true; 
-            console.log('Google Analytics initialisé.');
-
-            setupGAEventListeners();
+                // Déclenchement des écouteurs d'événements GA4 APRÈS INITIALISATION ET DOM READY
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', setupGAEventListeners);
+                } else {
+                    setupGAEventListeners();
+                }
+            };
+            
+            window.gaInitialized = true;
         }
 
         function setupGAEventListeners() {
             const userName = 'Anne EVARISTO';
 
             function sendButtonClickEvent(category, label, text) {
-                if (window.gaInitialized) {
-                    gtag('event', 'button_click', {
-                        'event_category': category,
-                        'event_label': label + ' - ' + userName,
-                        'button_text': text
-                    });
-                } else {
-                    console.log('GA non initialisé, clic non tracké:', text);
-                }
+                // Utilise la nouvelle fonction sendGAEvent pour plus de robustesse
+                sendGAEvent('event', 'button_click', {
+                    'event_category': category,
+                    'event_label': label + ' - ' + userName,
+                    'button_text': text
+                });
+                console.log('GA Event Queued (via sendGAEvent): ', category, label, text);
             }
 
-            // Attachement des écouteurs d'événements
             document.getElementById('saveContactButton')?.addEventListener('click', function() {
                 sendButtonClickEvent('Carte de Visite', 'Enregistrer Contact', 'Enregistrer dans mes Contacts');
             });
@@ -665,6 +686,7 @@
                     });
                 });
             }
+            console.log('Écouteurs d\'événements GA attachés.');
         }
 
         // --- GESTION DU BANDEAU DE CONSENTEMENT ---
@@ -672,12 +694,12 @@
             const consentBanner = document.getElementById('cookieConsentBanner');
             const acceptButton = document.getElementById('acceptCookies');
             const denyButton = document.getElementById('denyCookies');
-            const consentCookieName = 'cjml_ga_consent'; // Nom du cookie de consentement
+            const consentCookieName = 'cjml_ga_consent';
 
             const getConsent = () => localStorage.getItem(consentCookieName);
 
             if (!getConsent()) {
-                setTimeout(() => { 
+                setTimeout(() => {
                     consentBanner.classList.add('show');
                 }, 500); 
             } else if (getConsent() === 'granted') {
@@ -687,7 +709,7 @@
             acceptButton.addEventListener('click', function() {
                 localStorage.setItem(consentCookieName, 'granted');
                 consentBanner.classList.remove('show');
-                initializeGoogleAnalytics(); 
+                initializeGoogleAnalytics();
             });
 
             denyButton.addEventListener('click', function() {
