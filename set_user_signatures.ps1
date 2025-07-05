@@ -110,6 +110,15 @@ $config = @{
     DigitalCardLogoUrl    = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-horizontal.jpg"
     PrintLogoUrl          = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png"
 
+    # --- NOUVELLES LIGNES À AJOUTER POUR LES LOGOS PARTENAIRES ET SOCIAUX ---
+    GcsmsLogoUrl          = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-gcsms-pyrenees.png" # <--- NOUVELLE URL
+    FacebookLogoUrl       = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/icon-facebook.png"    # <--- NOUVELLE URL
+    LinkedinLogoUrl       = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/icon-linkedin.png"    # <--- NOUVELLE URL
+
+    FacebookPageUrl       = "https://www.facebook.com/CentreJeanMarieLARRIEU" # <-- REMPLACEZ PAR L'URL RÉELLE DE LA PAGE FB DU CJML
+    LinkedinCompanyUrl    = "https://www.linkedin.com/company/centre-jean-marie-larrieu" # <-- REMPLACEZ PAR L'URL RÉELLE DE LA PAGE LINKEDIN DU CJML
+    # --- FIN NOUVELLES LIGNES ---
+	
     OrgName               = "Centre Jean-Marie LARRIEU"
     DefaultPhoneNumberRaw = "+33562913250"
     DefaultPhoneNumberDisplay = "05 62 91 32 50"
@@ -152,7 +161,7 @@ $githubConfig = @{
     Repo = "assets-cjml"
     VcardFolderPath = "vcards"
     QrcodeFolderPath = "qrcodes"
-    PagesBaseUrl = "https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml"
+    PagesBaseUrl = "https://ressources.cjml.fr"
 }
 try {
     $tokenPath = Join-Path -Path $config.ProjectRoot -ChildPath "github_token.txt"
@@ -900,6 +909,13 @@ foreach ($user in $usersToProcess) {
         '{{website_url}}'             = $config.WebsiteUrl
         '{{website_display_url}}'     = $config.WebsiteDisplayUrl
         '{{org_name}}'                = $config.OrgName
+		# --- NOUVELLES LIGNES À AJOUTER ICI ---
+        '{{gcsms_logo_url}}'          = $config.GcsmsLogoUrl
+        '{{facebook_logo_url}}'       = $config.FacebookLogoUrl
+        '{{linkedin_logo_url}}'       = $config.LinkedinLogoUrl
+        '{{facebook_page_url}}'       = $config.FacebookPageUrl
+        '{{linkedin_company_url}}'    = $config.LinkedinCompanyUrl
+        # --- FIN DES NOUVELLES LIGNES ---
     }
 
     $finalSignatureHtml = $htmlTemplateContent
