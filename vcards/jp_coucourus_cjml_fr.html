@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KHZKJNZM');</script>
+<!-- End Google Tag Manager -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - Jean-Pierre COUCOURUS</title>
-    <link rel="icon" href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -448,9 +455,14 @@
             }
         }
     </style>
-	<link rel="icon" href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/favicon.ico" type="image/x-icon">
-</head>
+	<link rel="icon" href="../favicon.ico" type="image/x-icon">
+
+    </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KHZKJNZM"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
     <div class="card">
         <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-horizontal.jpg" alt="Logo" class="logo">
         <h1>Jean-Pierre COUCOURUS</h1>
@@ -472,7 +484,7 @@
 
         <div class="bottom-actions-container">
             <div class="qr-code-small-container" id="qrCodeSmallButton" onclick="showQrCodeOverlay()">
-                <img src="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/qrcodes/jp_coucourus_cjml_fr.png" alt="QR Code" class="qr-code-small">
+                <img src="https://ressources.cjml.fr/qrcodes/jp_coucourus_cjml_fr.png" alt="QR Code" class="qr-code-small">
                 <span class="qr-code-text">Scannez<br>ma carte</span>
             </div>
 
@@ -489,9 +501,9 @@
     <div id="qrOverlay" class="qr-overlay" onclick="hideQrCodeOverlay(event)">
         <div class="qr-overlay-content" onclick="event.stopPropagation()">
             <button class="qr-overlay-close" onclick="hideQrCodeOverlay(event)">×</button>
-            <img id="qrOverlayImg" src="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/qrcodes/jp_coucourus_cjml_fr.png" alt="QR Code" class="qr-overlay-img">
+            <img id="qrOverlayImg" src="https://ressources.cjml.fr/qrcodes/jp_coucourus_cjml_fr.png" alt="QR Code" class="qr-overlay-img">
             <p class="qr-overlay-text">Scannez ce QR Code pour accéder à la carte de visite de <br><b>Jean-Pierre COUCOURUS</b></p>
-            <p><a href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/jp_coucourus_cjml_fr.html" target="_blank" class="button primary" style="width: auto; padding: 10px 20px; margin-top: 10px;" id="qrOverlayLinkButton">Accéder à la page complète</a></p>
+            <p><a href="https://ressources.cjml.fr/vcards/jp_coucourus_cjml_fr.html" target="_blank" class="button primary" style="width: auto; padding: 10px 20px; margin-top: 10px;" id="qrOverlayLinkButton">Accéder à la page complète</a></p>
         </div>
     </div>
 
@@ -501,7 +513,7 @@
             <p class="qr-overlay-text" style="margin-bottom: 0;">Partager la carte de visite de <br><b>Jean-Pierre COUCOURUS</b></p>
             <div class="share-options-menu">
                 <button class="share-option-button" id="nativeShareButton" onclick="handleNativeShare()">Partager (appareil)</button>
-                <a href="mailto:?subject=Carte de Visite de Jean-Pierre COUCOURUS&body=Découvrez la carte de visite numérique de Jean-Pierre COUCOURUS : https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/jp_coucourus_cjml_fr.html" class="share-option-button" id="emailShareButton">Envoyer par Email</a>
+                <a href="mailto:?subject=Carte de Visite de Jean-Pierre COUCOURUS&body=Découvrez la carte de visite numérique de Jean-Pierre COUCOURUS : https://ressources.cjml.fr/vcards/jp_coucourus_cjml_fr.html" class="share-option-button" id="emailShareButton">Envoyer par Email</a>
                 <button class="share-option-button" id="copyLinkShareButton" onclick="copyLink()">Copier le lien</button>
             </div>
         </div>
@@ -516,99 +528,208 @@
         </div>
     </div>
 
-<script>
-    // Fonctions existantes pour les overlays ... (inchangées)
+    <script>
+        // Fonctions existantes pour les overlays
+        function showQrCodeOverlay() {
+            const overlay = document.getElementById('qrOverlay');
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('shareOverlay').classList.remove('visible');
+        }
 
-    // --- SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS ---
-    const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // VOTRE ID GA4
+        function hideQrCodeOverlay(event) {
+            if (event.target.id === 'qrOverlay' || event.target.classList.contains('qr-overlay-close')) {
+                const overlay = document.getElementById('qrOverlay');
+                overlay.classList.remove('visible');
+                document.body.style.overflow = '';
+            }
+        }
 
-    function sendGAEvent(command, ...args) {
-        window.dataLayer = window.dataLayer || []; // S'assurer que dataLayer existe
-        window.dataLayer.push(arguments); // arguments contient [command, ...args]
-        // Les messages console peuvent être utiles pour le débogage, mais peuvent être retirés en production
-        // console.log(`GA command queued: ${command}`, args);
-    }
+        function showShareOverlay() {
+            const overlay = document.getElementById('shareOverlay');
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('qrOverlay').classList.remove('visible');
+        }
 
-    function initializeGoogleAnalytics() {
-        if (window.gaInitialized) return;
+        function hideShareOverlay(event) {
+            if (event.target.id === 'shareOverlay' || event.target.classList.contains('share-overlay-close')) {
+                const overlay = document.getElementById('shareOverlay');
+                overlay.classList.remove('visible');
+                document.body.style.overflow = '';
+            }
+        }
 
-        // --- NOUVELLE LOGIQUE ICI ---
-        window.dataLayer = window.dataLayer || [];
+        async function handleNativeShare() {
+            const shareData = {
+                title: 'Carte de Visite Numérique de Jean-Pierre COUCOURUS',
+                text: 'Découvrez la carte de visite numérique de Jean-Pierre COUCOURUS : https://ressources.cjml.fr/vcards/jp_coucourus_cjml_fr.html',
+                url: 'https://ressources.cjml.fr/vcards/jp_coucourus_cjml_fr.html'
+            };
 
-        // Pousser card_user_name DÈS QUE POSSIBLE dans le dataLayer
-        // AVANT le chargement de gtag.js et la configuration initiale de GA4
-        window.dataLayer.push({
-            'card_user_name': 'Jean-Pierre COUCOURUS'
-        });
-        console.log('card_user_name pushed to DataLayer:', 'Jean-Pierre COUCOURUS'); // Pour le débogage
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                    console.log('Partage natif réussi');
+                } catch (err) {
+                    console.log('Erreur de partage natif ou annulé: ', err);
+                }
+            } else {
+                alert("La fonction de partage native n'est pas disponible sur votre appareil/navigateur. Veuillez utiliser 'Envoyer par Email' ou 'Copier le lien'.");
+            }
+            hideShareOverlay();
+        }
 
-        const gtagScript = document.createElement('script');
-        gtagScript.async = true;
-        gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
-        document.head.appendChild(gtagScript);
+        function copyLink() {
+            const linkToCopy = 'https://ressources.cjml.fr/vcards/jp_coucourus_cjml_fr.html';
+            navigator.clipboard.writeText(linkToCopy).then(() => {
+                alert("Lien copié dans le presse-papiers !");
+                console.log('Lien copié: ', linkToCopy);
+            }).catch(err => {
+                console.error('Erreur lors de la copie du lien: ', err);
+                const textArea = document.createElement("textarea");
+                textArea.value = linkToCopy;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    const successful = document.execCommand('copy');
+                    const msg = successful ? 'Lien copié dans le presse-papiers !' : 'Erreur lors de la copie du lien.';
+                    alert(msg);
+                } catch (err) {
+                    alert("Impossible de copier le lien. Veuillez le copier manuellement depuis la barre d'adresse : " + linkToCopy);
+                }
+                document.body.removeChild(textArea);
+            }).finally(() => {
+                hideShareOverlay();
+            });
+        }
 
-        gtagScript.onload = () => {
-            // Ces commandes sont maintenant exécutées après le chargement de gtag.js
-            // Mais card_user_name est déjà dans le dataLayer
-            sendGAEvent('js', new Date()); // Initialise gtag avec la date
-            sendGAEvent('config', GA4_MEASUREMENT_ID); // Configure GA4 et envoie la page_view
-            console.log('Google Analytics initialisé et configuré.');
+        // --- SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS ---
+        const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // VOTRE ID GA4
+
+        // sendGAEvent ne pousse plus directement vers gtag, mais vers dataLayer
+        function sendGAEvent(command, ...args) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push(arguments); // arguments contient [command, ...args]
+            console.log(`GA command pushed to dataLayer: ${command}`, args);
+        }
+
+        function initializeGoogleAnalytics() {
+            if (window.gaInitialized) return;
+
+            window.dataLayer = window.dataLayer || [];
+
+            // Poussez card_user_name DÈS QUE POSSIBLE dans le dataLayer
+            // La "Balise Google" de GTM (si bien configurée) le lira
+            window.dataLayer.push({
+                'card_user_name': 'Jean-Pierre COUCOURUS'
+            });
+            console.log('card_user_name pushed to DataLayer:', 'Jean-Pierre COUCOURUS');
+
+            // --- IMPORTANT : SUPPRIMEZ ICI LE CHARGEMENT DIRECT DE GTAG.JS ---
+            // Supprimez les lignes suivantes si elles étaient présentes:
+            // const gtagScript = document.createElement('script');
+            // gtagScript.async = true;
+            // gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
+            // document.head.appendChild(gtagScript);
+
+            // --- IMPORTANT : SUPPRIMEZ AUSSI CES APPELS QUI SERONT GÉRÉS PAR GTM ---
+            // sendGAEvent('js', new Date());
+            // sendGAEvent('config', GA4_MEASUREMENT_ID);
+
+            // GTM, via sa "Balise Google" configurée, chargera gtag.js et enverra le page_view
+            console.log('Google Analytics initialisation process now managed by GTM.');
 
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', setupGAEventListeners);
             } else {
                 setupGAEventListeners();
             }
-        };
 
-        window.gaInitialized = true;
-    }
+            window.gaInitialized = true;
+        }
 
-    function setupGAEventListeners() {
-        const userName = 'Jean-Pierre COUCOURUS';
+        function setupGAEventListeners() {
+            const userName = 'Jean-Pierre COUCOURUS';
 
-        function sendButtonClickEvent(category, label, text) {
-            sendGAEvent('event', 'button_click', {
-                'event_category': category,
-                'event_label': label + ' - ' + userName,
-                'button_text': text,
-                'card_user_name': userName // Vous pouvez aussi l'ajouter ici pour les événements de clic spécifiques
+            function sendButtonClickEvent(category, label, text) {
+                // Utilise la fonction sendGAEvent pour plus de robustesse
+                sendGAEvent('event', 'button_click', {
+                    'event_category': category,
+                    'event_label': label + ' - ' + userName,
+                    'button_text': text,
+                    // Incluez card_user_name explicitement pour les événements si vous voulez le voir attaché à chaque événement
+                    // Bien que pour la propriété utilisateur, la "Balise Google" le gère globalement
+                    'card_user_name': userName 
+                });
+                console.log('GA Event Queued (via sendGAEvent): ', category, label, text);
+            }
+
+            document.getElementById('saveContactButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Enregistrer Contact', 'Enregistrer dans mes Contacts');
             });
-            console.log('GA Event Queued (via sendGAEvent): ', category, label, text);
+            document.getElementById('qrCodeSmallButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Afficher QR Code', 'Scannez ma carte');
+            });
+            document.getElementById('shareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Ouvrir Partage', 'Partager');
+            });
+            document.getElementById('qrOverlayLinkButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Lien Page Complete QR Overlay', 'Accéder à la page complète');
+            });
+            document.getElementById('nativeShareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Partager Natif', 'Partager (appareil)');
+            });
+            document.getElementById('emailShareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Partager Email', 'Envoyer par Email');
+            });
+            document.getElementById('copyLinkShareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Copier Lien Partage', 'Copier le lien');
+            });
+
+            const actionButtonsContainer = document.getElementById('actionButtonsContainer');
+            if (actionButtonsContainer) {
+                actionButtonsContainer.querySelectorAll('a.button, button.button').forEach(button => {
+                    const buttonText = button.textContent.trim() || button.getAttribute('data-analytics-label') || 'Action Button';
+                    button.addEventListener('click', function() {
+                        sendButtonClickEvent('Carte de Visite - Actions', buttonText, buttonText);
+                    });
+                });
+            }
+            console.log('Écouteurs d\'événements GA attachés.');
         }
 
-        // ... (vos écouteurs d'événements restent inchangés ici) ...
-        console.log('Écouteurs d\'événements GA attachés.');
-    }
+        // --- GESTION DU BANDEAU DE CONSENTEMENT ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const consentBanner = document.getElementById('cookieConsentBanner');
+            const acceptButton = document.getElementById('acceptCookies');
+            const denyButton = document.getElementById('denyCookies');
+            const consentCookieName = 'cjml_ga_consent';
 
-    // --- GESTION DU BANDEAU DE CONSENTEMENT ---
-    document.addEventListener('DOMContentLoaded', function() {
-        const consentBanner = document.getElementById('cookieConsentBanner');
-        const acceptButton = document.getElementById('acceptCookies');
-        const denyButton = document.getElementById('denyCookies');
-        const consentCookieName = 'cjml_ga_consent';
+            const getConsent = () => localStorage.getItem(consentCookieName);
 
-        const getConsent = () => localStorage.getItem(consentCookieName);
+            if (!getConsent()) {
+                setTimeout(() => {
+                    consentBanner.classList.add('show');
+                }, 500);
+            } else if (getConsent() === 'granted') {
+                initializeGoogleAnalytics();
+            }
 
-        if (!getConsent()) {
-            setTimeout(() => {
-                consentBanner.classList.add('show');
-            }, 500);
-        } else if (getConsent() === 'granted') {
-            initializeGoogleAnalytics();
-        }
+            acceptButton.addEventListener('click', function() {
+                localStorage.setItem(consentCookieName, 'granted');
+                consentBanner.classList.remove('show');
+                initializeGoogleAnalytics();
+            });
 
-        acceptButton.addEventListener('click', function() {
-            localStorage.setItem(consentCookieName, 'granted');
-            consentBanner.classList.remove('show');
-            initializeGoogleAnalytics();
+            denyButton.addEventListener('click', function() {
+                localStorage.setItem(consentCookieName, 'denied');
+                consentBanner.classList.remove('show');
+            });
         });
-
-        denyButton.addEventListener('click', function() {
-            localStorage.setItem(consentCookieName, 'denied');
-            consentBanner.classList.remove('show');
-        });
-    });
-</script>
+    </script>
 </body>
 </html>
