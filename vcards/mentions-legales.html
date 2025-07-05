@@ -52,7 +52,6 @@
             padding-bottom: 8px;
             margin-top: 30px;
         }
-        /* Style pour les sous-titres de niveau 3 (Utilisé pour les sous-sections GA4) */
         h3 {
             color: var(--primary-blue);
             font-weight: 500;
@@ -60,7 +59,6 @@
             margin-top: 25px;
             margin-bottom: 10px;
         }
-        /* Style pour les sous-titres de niveau 4 (Utilisé pour les sous-sous-sections GA4) */
         h4 {
             color: var(--text-dark);
             font-weight: 500;
@@ -96,51 +94,159 @@
             margin-bottom: 30px;
         }
 
+        /* --- STYLES DU BANDEAU DE CONSENTEMENT (COPIÉS DE LA CARTE DE VISITE) --- */
+        #cookieConsentBanner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            background-color: var(--card-bg);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 10000;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            opacity: 0;
+            visibility: hidden;
+            box-sizing: border-box;
+        }
+        #cookieConsentBanner.show {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        #cookieConsentBanner p {
+            margin: 0;
+            font-size: 0.9em;
+            color: var(--text-dark);
+            text-align: center;
+            max-width: 600px;
+        }
+        #cookieConsentBanner .consent-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 300px;
+        }
+        #cookieConsentBanner .consent-button {
+            flex-grow: 1;
+            padding: 10px 18px;
+            border-radius: 7px;
+            font-weight: 500;
+            font-size: 0.9em;
+            cursor: pointer;
+            border: 1px solid var(--primary-blue);
+            background-color: var(--primary-blue);
+            color: white;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            box-sizing: border-box;
+        }
+        #cookieConsentBanner .consent-button.deny {
+            background-color: #f0f0f0;
+            color: var(--text-dark);
+            border: 1px solid var(--border-light);
+        }
+        #cookieConsentBanner .consent-button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        @media (max-width: 480px) {
+            #cookieConsentBanner {
+                padding: 15px;
+            }
+            #cookieConsentBanner p {
+                font-size: 0.85em;
+            }
+            #cookieConsentBanner .consent-buttons {
+                flex-direction: column;
+                width: 100%;
+                max-width: none;
+            }
+            #cookieConsentBanner .consent-button {
+                width: 100%;
+                text-align: center;
+            }
+        }
     </style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2MWWE56469"></script>
     <script>
-        const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // <-- REMPLACEZ PAR L\'ID DE VOTRE NOUVELLE PROPRIÉTÉ GA4
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
 
-        // Fonction pour initialiser Google Analytics
-        function initializeGoogleAnalyticsML() {
-            if (window.gaInitializedML) return; // Empêcher les initialisations multiples
+      // Commande de base pour configurer le dataLayer avec la date actuelle.
+      gtag('js', new Date());
 
-            const gtagScript = document.createElement('script');
-            gtagScript.async = true;
-            gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
-            document.head.appendChild(gtagScript);
+      // Initialiser le consentement à 'denied' par défaut.
+      gtag('consent', 'default', {
+        'analytics_storage': 'denied',
+        'ad_storage': 'denied',
+        'wait_for_update': 500 
+      });
 
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
+      // --- LOGIQUE DE CONSENTEMENT ET INITIALISATION GA POUR MENTIONS LÉGALES ---
+      const GA4_MEASUREMENT_ID_ML = 'G-2MWWE56469'; // Votre ID GA4 (le même que pour les cartes)
+      const CONSENT_COOKIE_NAME_ML = 'cjml_ga_consent'; // Nom du cookie de consentement (le même)
 
-            // Pour les mentions légales, on n'a pas de 'user_full_name' dynamique ici,
-            // mais on peut envoyer un nom de page spécifique
-            gtag('config', GA4_MEASUREMENT_ID, {
-                'page_title': 'Mentions Légales',
-                'page_path': '/mentions-legales.html'
-            });
+      // Fonction pour mettre à jour le consentement et initialiser GA sur cette page
+      function updateConsentAndInitializeGA_ML(consentStatus) {
+        localStorage.setItem(CONSENT_COOKIE_NAME_ML, consentStatus);
+        document.getElementById('cookieConsentBanner')?.classList.remove('show');
 
-            window.gaInitializedML = true; // Marque l'initialisation
-            console.log('Google Analytics initialisé pour les mentions légales.');
+        if (consentStatus === 'granted') {
+          gtag('consent', 'update', {
+            'analytics_storage': 'granted',
+            'ad_storage': 'granted' 
+          });
+          gtag('config', GA4_MEASUREMENT_ID_ML); // Envoyer le page_view pour les mentions légales
+          console.log('Google Analytics initialisé pour Mentions Légales (consentement accordé).');
+        } else {
+          gtag('consent', 'update', {
+            'analytics_storage': 'denied',
+            'ad_storage': 'denied'
+          });
+          console.log('Google Analytics désactivé pour Mentions Légales (consentement refusé).');
+        }
+      }
+
+      // --- GESTION DU BANDEAU DE CONSENTEMENT AU CHARGEMENT DU DOM (MENTIONS LÉGALES) ---
+      document.addEventListener('DOMContentLoaded', function() {
+        const consentBanner = document.getElementById('cookieConsentBanner');
+        const acceptButton = document.getElementById('acceptCookies');
+        const denyButton = document.getElementById('denyCookies');
+
+        const savedConsent = localStorage.getItem(CONSENT_COOKIE_NAME_ML);
+
+        if (!savedConsent) {
+          // Afficher le bandeau si aucun consentement n'a été enregistré
+          setTimeout(() => {
+            consentBanner?.classList.add('show');
+          }, 500); 
+        } else {
+          // Si un consentement est déjà enregistré, l'appliquer immédiatement
+          updateConsentAndInitializeGA_ML(savedConsent);
         }
 
-        // Vérifier si le consentement a été donné sur la carte de visite.
-        // On suppose que le cookie de consentement est partagé via localStorage.
-        document.addEventListener('DOMContentLoaded', function() {
-            const consentCookieName = 'cjml_ga_consent';
-            if (localStorage.getItem(consentCookieName) === 'granted') {
-                initializeGoogleAnalyticsML();
-            } else {
-                console.log('Consentement non accordé ou refusé, Google Analytics non initialisé sur les mentions légales.');
-            }
+        // Attacher les écouteurs de clic pour les boutons du bandeau
+        acceptButton?.addEventListener('click', function() {
+          updateConsentAndInitializeGA_ML('granted');
         });
+
+        denyButton?.addEventListener('click', function() {
+          updateConsentAndInitializeGA_ML('denied');
+        });
+      });
     </script>
-    <link rel="icon" href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="legal-container">
         <h1>Mentions Légales & Politique de Confidentialité</h1>
-        <p class="update-date">Date de dernière mise à jour : 20 juin 2025</p>
+        <p class="update-date">Date de dernière mise à jour : 19 juin 2025</p>
 
         <h2>Éditeur du site</h2>
         <p>
@@ -181,7 +287,7 @@
 
         <h3>Utilisation de Google Analytics 4 (Mesure d'audience)</h3>
         <p>
-            Ce site utilise <strong>Google Analytics 4 (GA4)</strong>, un service d'analyse d'audience fourni par Google Ireland Limited ("Google"). GA4 nous aide à comprendre comment les visiteurs interagissent avec nos cartes de visite numériques, notamment les pages consultées, les liens cliqués et les informations sur les appareils utilisés (ordinateur, mobile). Ces données sont collectées dans le but exclusif de mesurer l'audience et d'améliorer l'expérience utilisateur de nos cartes de visite.
+            Ce site utilise **Google Analytics 4 (GA4)**, un service d'analyse d'audience fourni par Google Ireland Limited ("Google"). GA4 nous aide à comprendre comment les visiteurs interagissent avec nos cartes de visite numériques, notamment les pages consultées, les liens cliqués et les informations sur les appareils utilisés (ordinateur, mobile). Ces données sont collectées dans le but exclusif de mesurer l'audience et d'améliorer l'expérience utilisateur de nos cartes de visite.
         </p>
         <p>
             Les données collectées par Google Analytics 4 incluent, entre autres, l'adresse IP (anonymisée), la date et l'heure de la visite, le type d'appareil, le système d'exploitation et le navigateur utilisé. Ces informations sont agrégées et anonymisées dans la mesure du possible et ne sont pas utilisées pour identifier personnellement les visiteurs.
@@ -192,7 +298,7 @@
         
         <h4>Cookies liés à Google Analytics</h4>
         <p>
-            Google Analytics 4 utilise des cookies pour collecter des informations sur votre interaction avec le site, y compris le nombre de visites, les pages visitées et la durée de la visite. Ces cookies sont déposés par le domaine du site. Le principal cookie utilisé est `_ga`, et des cookies supplémentaires comme `_ga_2MWWE56469 peuvent être déposés. La durée de vie de ces cookies est généralement de 13 mois pour `_ga`.
+            Google Analytics 4 utilise des cookies pour collecter des informations sur votre interaction avec le site, y compris le nombre de visites, les pages visitées et la durée de la visite. Ces cookies sont déposés par le domaine du site. Le principal cookie utilisé est `_ga`, et des cookies supplémentaires comme `_ga_**G-2MWWE56469**` peuvent être déposés. La durée de vie de ces cookies est généralement de 13 mois pour `_ga`.
         </p>
         
         <h4>Option d'Opposition (Opt-out)</h4>
@@ -203,7 +309,7 @@
 
         <h2>Cookies</h2>
         <p>
-            Ce site utilise des cookies uniquement à des fins de <strong>mesure d'audience anonymisée via Google Analytics 4</strong>, comme détaillé dans la section "Utilisation de Google Analytics 4". Seuls des cookies techniques strictement nécessaires au fonctionnement du service par l'hébergeur (GitHub Pages) pourraient également être déposés, lesquels ne requièrent pas de consentement préalable.
+            Ce site utilise des cookies uniquement à des fins de **mesure d'audience anonymisée via Google Analytics 4**, comme détaillé dans la section "Utilisation de Google Analytics 4". Seuls des cookies techniques strictement nécessaires au fonctionnement du service par l'hébergeur (GitHub Pages) pourraient également être déposés, lesquels ne requièrent pas de consentement préalable.
         </p>
 
         <h2>Droits de l'utilisateur</h2>
@@ -228,5 +334,82 @@
             Le présent site et ses mentions légales sont soumis au droit français.
         </p>
     </div>
+    <div id="cookieConsentBanner">
+        <p>Ce site utilise des cookies à des fins de mesure d'audience anonymisée. Acceptez-vous leur dépôt ?</p>
+        <div class="consent-buttons">
+            <button class="consent-button" id="acceptCookies">Accepter</button>
+            <button class="consent-button deny" id="denyCookies">Refuser</button>
+            <a href="mentions-legales.html" class="consent-button deny" style="text-decoration: none; text-align: center;">En savoir plus</a>
+        </div>
+    </div>
+
+    <script>
+        // --- SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS (MENTIONS LÉGALES) ---
+        const GA4_MEASUREMENT_ID_ML = 'G-2MWWE56469'; // VOTRE ID GA4 (le même que pour les cartes)
+        const CONSENT_COOKIE_NAME_ML = 'cjml_ga_consent'; // Nom du cookie de consentement (le même)
+
+        // Définir dataLayer et la fonction gtag globalement et très tôt
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+
+        // Commande de base pour configurer le dataLayer avec la date actuelle.
+        gtag('js', new Date());
+
+        // Initialiser le consentement à 'denied' par défaut.
+        gtag('consent', 'default', {
+            'analytics_storage': 'denied',
+            'ad_storage': 'denied',
+            'wait_for_update': 500 
+        });
+
+        // Fonction pour mettre à jour le consentement et initialiser GA sur cette page
+        function updateConsentAndInitializeGA_ML(consentStatus) {
+            localStorage.setItem(CONSENT_COOKIE_NAME_ML, consentStatus);
+            document.getElementById('cookieConsentBanner')?.classList.remove('show');
+
+            if (consentStatus === 'granted') {
+                gtag('consent', 'update', {
+                    'analytics_storage': 'granted',
+                    'ad_storage': 'granted' 
+                });
+                gtag('config', GA4_MEASUREMENT_ID_ML); // Envoyer le page_view pour les mentions légales
+                console.log('Google Analytics initialisé pour Mentions Légales (consentement accordé).');
+            } else {
+                gtag('consent', 'update', {
+                    'analytics_storage': 'denied',
+                    'ad_storage': 'denied'
+                });
+                console.log('Google Analytics désactivé pour Mentions Légales (consentement refusé).');
+            }
+        }
+
+        // --- GESTION DU BANDEAU DE CONSENTEMENT AU CHARGEMENT DU DOM (MENTIONS LÉGALES) ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const consentBanner = document.getElementById('cookieConsentBanner');
+            const acceptButton = document.getElementById('acceptCookies');
+            const denyButton = document.getElementById('denyCookies');
+
+            const savedConsent = localStorage.getItem(CONSENT_COOKIE_NAME_ML);
+
+            if (!savedConsent) {
+                // Afficher le bandeau si aucun consentement n'a été enregistré
+                setTimeout(() => {
+                    consentBanner?.classList.add('show');
+                }, 500); 
+            } else {
+                // Si un consentement est déjà enregistré, l'appliquer immédiatement
+                updateConsentAndInitializeGA_ML(savedConsent);
+            }
+
+            // Attacher les écouteurs de clic pour les boutons du bandeau
+            acceptButton?.addEventListener('click', function() {
+                updateConsentAndInitializeGA_ML('granted');
+            });
+
+            denyButton?.addEventListener('click', function() {
+                updateConsentAndInitializeGA_ML('denied');
+            });
+        });
+    </script>
 </body>
 </html>
