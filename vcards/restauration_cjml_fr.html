@@ -11,7 +11,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - Restauration Centre Jean-Marie LARRIEU</title>
-    <link rel="icon" href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -455,7 +455,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             }
         }
     </style>
-	<link rel="icon" href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/favicon.ico" type="image/x-icon">
+	<link rel="icon" href="../favicon.ico" type="image/x-icon">
 
     </head>
 <body>
@@ -484,7 +484,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <div class="bottom-actions-container">
             <div class="qr-code-small-container" id="qrCodeSmallButton" onclick="showQrCodeOverlay()">
-                <img src="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/qrcodes/restauration_cjml_fr.png" alt="QR Code" class="qr-code-small">
+                <img src="https://ressources.cjml.fr/qrcodes/restauration_cjml_fr.png" alt="QR Code" class="qr-code-small">
                 <span class="qr-code-text">Scannez<br>ma carte</span>
             </div>
 
@@ -501,9 +501,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="qrOverlay" class="qr-overlay" onclick="hideQrCodeOverlay(event)">
         <div class="qr-overlay-content" onclick="event.stopPropagation()">
             <button class="qr-overlay-close" onclick="hideQrCodeOverlay(event)">×</button>
-            <img id="qrOverlayImg" src="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/qrcodes/restauration_cjml_fr.png" alt="QR Code" class="qr-overlay-img">
+            <img id="qrOverlayImg" src="https://ressources.cjml.fr/qrcodes/restauration_cjml_fr.png" alt="QR Code" class="qr-overlay-img">
             <p class="qr-overlay-text">Scannez ce QR Code pour accéder à la carte de visite de <br><b>Restauration Centre Jean-Marie LARRIEU</b></p>
-            <p><a href="https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/restauration_cjml_fr.html" target="_blank" class="button primary" style="width: auto; padding: 10px 20px; margin-top: 10px;" id="qrOverlayLinkButton">Accéder à la page complète</a></p>
+            <p><a href="https://ressources.cjml.fr/vcards/restauration_cjml_fr.html" target="_blank" class="button primary" style="width: auto; padding: 10px 20px; margin-top: 10px;" id="qrOverlayLinkButton">Accéder à la page complète</a></p>
         </div>
     </div>
 
@@ -513,7 +513,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <p class="qr-overlay-text" style="margin-bottom: 0;">Partager la carte de visite de <br><b>Restauration Centre Jean-Marie LARRIEU</b></p>
             <div class="share-options-menu">
                 <button class="share-option-button" id="nativeShareButton" onclick="handleNativeShare()">Partager (appareil)</button>
-                <a href="mailto:?subject=Carte de Visite de Restauration Centre Jean-Marie LARRIEU&body=Découvrez la carte de visite numérique de Restauration Centre Jean-Marie LARRIEU : https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/restauration_cjml_fr.html" class="share-option-button" id="emailShareButton">Envoyer par Email</a>
+                <a href="mailto:?subject=Carte de Visite de Restauration Centre Jean-Marie LARRIEU&body=Découvrez la carte de visite numérique de Restauration Centre Jean-Marie LARRIEU : https://ressources.cjml.fr/vcards/restauration_cjml_fr.html" class="share-option-button" id="emailShareButton">Envoyer par Email</a>
                 <button class="share-option-button" id="copyLinkShareButton" onclick="copyLink()">Copier le lien</button>
             </div>
         </div>
@@ -563,8 +563,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         async function handleNativeShare() {
             const shareData = {
                 title: 'Carte de Visite Numérique de Restauration Centre Jean-Marie LARRIEU',
-                text: 'Découvrez la carte de visite numérique de Restauration Centre Jean-Marie LARRIEU : https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/restauration_cjml_fr.html',
-                url: 'https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/restauration_cjml_fr.html'
+                text: 'Découvrez la carte de visite numérique de Restauration Centre Jean-Marie LARRIEU : https://ressources.cjml.fr/vcards/restauration_cjml_fr.html',
+                url: 'https://ressources.cjml.fr/vcards/restauration_cjml_fr.html'
             };
 
             if (navigator.share) {
@@ -581,7 +581,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         }
 
         function copyLink() {
-            const linkToCopy = 'https://Centre-Jean-Marie-LARRIEU.github.io/assets-cjml/vcards/restauration_cjml_fr.html';
+            const linkToCopy = 'https://ressources.cjml.fr/vcards/restauration_cjml_fr.html';
             navigator.clipboard.writeText(linkToCopy).then(() => {
                 alert("Lien copié dans le presse-papiers !");
                 console.log('Lien copié: ', linkToCopy);
