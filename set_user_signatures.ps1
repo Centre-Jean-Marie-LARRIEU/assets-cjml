@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v48.02 - Version Finale Signature, QR Code, Carte Numérique avec Mentions Légagles et Carte Imprimable + GA4 Tracking)
+﻿# set_user_signatures.ps1 (v49.03 - Nettoyage des cartes de visite en paramètre)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -8,11 +8,12 @@ param(
     [switch]$GeneratePrintableCard,
     [switch]$GeneratePdfCard,
     [switch]$ShowHelp,
-    [switch]$DebugMode
+    [switch]$DebugMode,
+    [switch]$CleanInactiveCards
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
-$script:ScriptVersion = "v48.02 - Version Finale Signature, QR Code, Carte Numérique avec Mentions Légagles et Carte Imprimable + GA4 Tracking"
+$script:ScriptVersion = "v49.03 - Correction du mode de nettoyage"
 Write-Host "Démarrage du script : set_user_signatures.ps1 ($script:ScriptVersion)" -ForegroundColor Green
 
 if ($ShowHelp) {
@@ -25,7 +26,7 @@ SYNOPSIS:
     Ce script a été optimisé pour la concision et la clarté.
 
 SYNTAXE:
-    .\set_user_signatures.ps1 [-SingleUserEmail <string>] [-IncludeSuspended] [-AddDigitalCard] [-GeneratePrintQr] [-GeneratePrintableCard] [-GeneratePdfCard] [-ShowHelp] [-DebugMode]
+    .\set_user_signatures.ps1 [-SingleUserEmail <string>] [-IncludeSuspended] [-AddDigitalCard] [-GeneratePrintQr] [-GeneratePrintableCard] [-GeneratePdfCard] [-ShowHelp] [-DebugMode] [-CleanInactiveCards]
 
 DESCRIPTION:
     Ce script automatise la mise à jour des signatures Gmail via GAM. Il est optimisé pour ne pas effectuer de mises à jour inutiles.
@@ -39,12 +40,16 @@ DESCRIPTION:
       et le label de l'adresse (ex: 'Siège Social') est dynamiquement affiché.
       Cette version inclut le suivi Google Analytics 4 (GA4) pour les consultations de pages et les clics sur les boutons.
 
+    - Mode Nettoyage : Active le nettoyage des cartes de visite numériques (pages web et QR codes) des
+      comptes utilisateurs suspendus, en accord avec les principes du RGPD. Ce mode est activé par le commutateur -CleanInactiveCards.
+
 PARAMÈTRES:
     -SingleUserEmail <string>
         Spécifie l'adresse email d'un seul utilisateur à mettre à jour.
 
     -IncludeSuspended
         Commutateur. Si présent, le script mettra à jour TOUS les utilisateurs, y compris les comptes suspendus.
+        Ceci n'entraîne pas de nettoyage automatique des cartes de visite.
 
     -AddDigitalCard
         Commutateur. Si présent, active la génération de la carte de visite numérique avec QR Code et le suivi GA4.
@@ -68,6 +73,11 @@ PARAMÈTRES:
         Commutateur. Si présent, affiche des informations de débogage détaillées sur les variables HTML générées.
         À utiliser pour diagnostiquer les problèmes d'affichage.
 
+    -CleanInactiveCards
+        Commutateur. Si présent, le script parcourra tous les utilisateurs suspendus du domaine et mettra à jour leurs
+        cartes de visite numériques et QR codes correspondants sur GitHub. Ce paramètre s'utilise de préférence
+        seul, ou en conjonction avec -IncludeSuspended pour forcer une analyse complète.
+
 EXEMPLES:
     # Affiche cette aide complète
     .\set_user_signatures.ps1 -ShowHelp
@@ -90,6 +100,12 @@ EXEMPLES:
 
     # Met à jour les signatures, les cartes de visite ET génère des QR Codes/Cartes imprimables/PDF pour un utilisateur
     .\set_user_signatures.ps1 -SingleUserEmail "s.gille@cjml.fr" -AddDigitalCard -GeneratePrintQr -GeneratePrintableCard -GeneratePdfCard -DebugMode
+    
+    # Met à jour les cartes de visite numériques de tous les comptes suspendus du domaine.
+    .\set_user_signatures.ps1 -IncludeSuspended -CleanInactiveCards
+    
+    # Met à jour la carte de visite numérique pour un seul utilisateur suspendu.
+    .\set_user_signatures.ps1 -SingleUserEmail "j.dupont@cjml.fr" -CleanInactiveCards
 "@
     Write-Host $helpText
     return
@@ -102,6 +118,7 @@ $config = @{
     SignatureTemplateName = "signature_template.html"
     DigitalCardTemplateName = "digital_card_template.html"
     PrintableCardTemplateName = "printable_business_card_template.html"
+    InactiveCardTemplateName = "inactive_card_template.html"
     PrintQrOutputFolder   = "C:\GAMWork\PrintQrCodes"
     PrintableCardOutputFolder = "C:\GAMWork\PrintableCards"
     PdfCardOutputFolder   = "C:\GAMWork\PdfCards"
@@ -111,14 +128,14 @@ $config = @{
     PrintLogoUrl          = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/Logo-CJML.png"
 
     # --- NOUVELLES LIGNES À AJOUTER POUR LES LOGOS PARTENAIRES ET SOCIAUX ---
-    GcsmsLogoUrl          = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-gcsms-pyrenees.png" # <--- NOUVELLE URL
-    FacebookLogoUrl       = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/icon-facebook.png"    # <--- NOUVELLE URL
-    LinkedinLogoUrl       = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/icon-linkedin.png"    # <--- NOUVELLE URL
+    GcsmsLogoUrl          = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-gcsms-pyrenees.png"
+    FacebookLogoUrl       = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/icon-facebook.png"
+    LinkedinLogoUrl       = "https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/icon-linkedin.png"
 
-    FacebookPageUrl       = "https://www.facebook.com/CentreJeanMarieLARRIEU" # <-- REMPLACEZ PAR L'URL RÉELLE DE LA PAGE FB DU CJML
-    LinkedinCompanyUrl    = "https://www.linkedin.com/company/centre-jean-marie-larrieu" # <-- REMPLACEZ PAR L'URL RÉELLE DE LA PAGE LINKEDIN DU CJML
+    FacebookPageUrl       = "https://www.facebook.com/CentreJeanMarieLARRIEU"
+    LinkedinCompanyUrl    = "https://www.linkedin.com/company/centre-jean-marie-larrieu"
     # --- FIN NOUVELLES LIGNES ---
-	
+    
     OrgName               = "Centre Jean-Marie LARRIEU"
     DefaultPhoneNumberRaw = "+33562913250"
     DefaultPhoneNumberDisplay = "05 62 91 32 50"
@@ -144,6 +161,7 @@ $config = @{
 $config.SignatureTemplatePath = Join-Path -Path $config.ProjectRoot -ChildPath $config.SignatureTemplateName
 $config.DigitalCardTemplatePath = Join-Path -Path $config.ProjectRoot -ChildPath $config.DigitalCardTemplateName
 $config.PrintableCardTemplatePath = Join-Path -Path $config.ProjectRoot -ChildPath $config.PrintableCardTemplateName
+$config.InactiveCardTemplatePath = Join-Path -Path $config.ProjectRoot -ChildPath $config.InactiveCardTemplateName
 
 # Calcul de websiteDisplayUrl
 if (-not [string]::IsNullOrEmpty($config.WebsiteUrl)) {
@@ -430,16 +448,21 @@ if (-not $ShowHelp) {
         Write-Host "--- MODE UTILISATEUR UNIQUE: Cible l'utilisateur '$SingleUserEmail' ---" -ForegroundColor Yellow
         $gamArgs = @(
             'print', 'users',
-            'query', "email='$SingleUserEmail'",
-            'fields', $fieldsToGet
+            'query', "email='$SingleUserEmail'"
         )
+        if ($IncludeSuspended -or $CleanInactiveCards) {
+             # No specific query needed if we need to include suspended or clean them
+        } else {
+             $gamArgs += 'query', 'isSuspended=False'
+        }
+        $gamArgs += 'fields', $fieldsToGet;
         Write-Host "DEBUG: GAM Command for single user: $($config.GamPath) $($gamArgs -join ' ')" -ForegroundColor DarkGray
         $gamOutput = & $config.GamPath $gamArgs | ConvertFrom-Csv
         if ($gamOutput) { $usersToProcess = $gamOutput }
         else { Write-Error "Impossible de récupérer les informations pour l'utilisateur '$SingleUserEmail'." }
     } else {
         $gamArgs = @('print', 'users');
-        if (-not $IncludeSuspended) { $gamArgs += 'query', 'isSuspended=False' }
+        if (-not $IncludeSuspended -and -not $CleanInactiveCards) { $gamArgs += 'query', 'isSuspended=False' }
         $gamArgs += 'fields', $fieldsToGet;
         
         Write-Host "DEBUG: GAM Command for multiple users: $($config.GamPath) $($gamArgs -join ' ')" -ForegroundColor DarkGray
@@ -473,7 +496,7 @@ foreach ($user in $usersToProcess) {
         $typeProperty = "addresses.$i.type"
         $formattedProperty = "addresses.$i.formatted"
 
-        if ($user.PSObject.Properties.Name -contains $typeProperty -and $UserObject.PSObject.Properties.Name -contains $formattedProperty) {
+        if ($user.PSObject.Properties.Name -contains $typeProperty -and $user.PSObject.Properties.Name -contains $formattedProperty) {
             if ($user.$typeProperty -eq 'work' -and -not [string]::IsNullOrEmpty($user.$formattedProperty)) {
                 $address_val = $user.$formattedProperty.Trim()
                 $addressLabelForCard = "Adresse du Bureau"
@@ -712,100 +735,133 @@ foreach ($user in $usersToProcess) {
     $qrCodeImageUrl_raw_for_digital_card = ""
     $qrCodeImageUrl_pages_for_digital_card = ""
 
-    if ($AddDigitalCard -and $githubConfig.Token) {
-        Write-Host "  - Démarrage de l'upload de la Carte de Visite Numérique vers GitHub pour $primaryEmail_val..." -ForegroundColor Cyan
+    # Correction : La logique de la carte de visite s'active si AddDigitalCard OU CleanInactiveCards sont utilisés
+    if (($AddDigitalCard -or $CleanInactiveCards) -and $githubConfig.Token) {
 
-        $tempQrCodeBaseFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_').png"
-        $tempQrCodeFullFileName = "temp_web_qr_$tempQrCodeBaseFileName"
-        $tempQrPath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath $tempQrCodeFullFileName
+        # CAS 1 : C'est un compte suspendu et on veut le "nettoyer"
+        if ($isSuspended -and $CleanInactiveCards) {
+            Write-Host "--- Traitement du compte suspendu : Remplacement de la carte numérique... ---" -ForegroundColor Yellow
 
-        Write-Host "    Tentative de génération temporaire du QR Code web: $($tempQrPath)" -ForegroundColor DarkGray
-
-        $qrCodeGenerationSuccess = Generate-QrCodeFile `
-            -QrDataUrl $downloaderPageUrl_final `
-            -OutputFileName $tempQrCodeFullFileName `
-            -OutputFolder ([System.IO.Path]::GetTempPath()) `
-            -QrCodeColors $config.QrCodeColors `
-            -PixelsPerModule 20
-
-        if ($qrCodeGenerationSuccess) {
-            Write-Host "    Lecture du QR Code temporaire depuis: $($tempQrPath)" -ForegroundColor DarkGray
-            $qrCodeBytesForWeb = $null
-            try {
-                $qrCodeBytesForWeb = [System.IO.File]::ReadAllBytes($tempQrPath)
-            } catch {
-                Write-Error "Impossible de lire le QR Code temporaire '$tempQrPath'. Erreur: $($_.Exception.Message)"
-            } finally {
-                Remove-Item -Path $tempQrPath -ErrorAction SilentlyContinue
+            # Utiliser le template de la carte inactive
+            $cardTemplateContent_inactive = Get-TemplateContent($config.InactiveCardTemplatePath)
+            
+            # Paramètres de remplacement pour le template inactif
+            $inactiveReplacements = @{
+                '{{secretariat_tel}}' = $config.DefaultPhoneNumberRaw
+                '{{secretariat_tel_display}}' = $config.DefaultPhoneNumberDisplay
+                '{{secretariat_email}}' = "info@cjml.fr" # Assurez-vous que cette adresse est correcte
+                '{{secretariat_website}}' = $config.WebsiteUrl
+                '{{secretariat_website_display}}' = $config.WebsiteDisplayUrl
+                '{{secretariat_address}}' = $config.DefaultAddress.Replace("`r`n", "<br>")
+                '{{secretariat_address_url}}' = [System.Net.WebUtility]::UrlEncode($config.DefaultAddress.Replace("`r`n", " - "))
             }
 
-            if ($qrCodeBytesForWeb -ne $null -and $qrCodeBytesForWeb.Length -gt 0) {
-                $uploadResultQrCode = Invoke-GitPublish `
-                    -FileName $tempQrCodeBaseFileName `
-                    -FileContentBytes $qrCodeBytesForWeb `
-                    -FolderPathInRepo $githubConfig.QrcodeFolderPath `
-                    -GitHubConfig $githubConfig `
-                    -DebugMode:$DebugMode
+            $downloaderPageContent = $cardTemplateContent_inactive
+            foreach ($key in $inactiveReplacements.Keys) {
+                $downloaderPageContent = $downloaderPageContent -replace $key, $inactiveReplacements[$key]
+            }
+            
+            # Note : on ne génère pas de nouveau QR code, on garde l'ancien pour les mails.
+            # L'upload de la carte inactive se fera dans la section suivante.
+            
+        } 
+        # CAS 2 : C'est un compte actif et on veut lui créer/mettre à jour sa carte
+        elseif (-not $isSuspended -and $AddDigitalCard) {
+            Write-Host "  - Démarrage de l'upload de la Carte de Visite Numérique vers GitHub pour $primaryEmail_val..." -ForegroundColor Cyan
 
-                if ($uploadResultQrCode) {
-                    $qrCodeImageUrl_raw_for_digital_card = $uploadResultQrCode.download_url
-                    Write-Host "    QR Code web URL (pour signature mail - raw.githubusercontent.com) : $qrCodeImageUrl_raw_for_digital_card" -ForegroundColor Green
+            $tempQrCodeBaseFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_').png"
+            $tempQrCodeFullFileName = "temp_web_qr_$tempQrCodeBaseFileName"
+            $tempQrPath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath $tempQrCodeFullFileName
 
-                    $qrCodeImageUrl_pages_for_digital_card = "$($githubConfig.PagesBaseUrl)/$($githubConfig.QrcodeFolderPath)/$tempQrCodeBaseFileName"
-                    Write-Host "    QR Code web URL (pour carte numérique - github.io) : $qrCodeImageUrl_pages_for_digital_card" -ForegroundColor Green
+            Write-Host "    Tentative de génération temporaire du QR Code web: $($tempQrPath)" -ForegroundColor DarkGray
 
+            $qrCodeGenerationSuccess = Generate-QrCodeFile `
+                -QrDataUrl $downloaderPageUrl_final `
+                -OutputFileName $tempQrCodeFullFileName `
+                -OutputFolder ([System.IO.Path]::GetTempPath()) `
+                -QrCodeColors $config.QrCodeColors `
+                -PixelsPerModule 20
+
+            if ($qrCodeGenerationSuccess) {
+                Write-Host "    Lecture du QR Code temporaire depuis: $($tempQrPath)" -ForegroundColor DarkGray
+                $qrCodeBytesForWeb = $null
+                try {
+                    $qrCodeBytesForWeb = [System.IO.File]::ReadAllBytes($tempQrPath)
+                } catch {
+                    Write-Error "Impossible de lire le QR Code temporaire '$tempQrPath'. Erreur: $($_.Exception.Message)"
+                } finally {
+                    Remove-Item -Path $tempQrPath -ErrorAction SilentlyContinue
+                }
+
+                if ($qrCodeBytesForWeb -ne $null -and $qrCodeBytesForWeb.Length -gt 0) {
+                    $uploadResultQrCode = Invoke-GitPublish `
+                        -FileName $tempQrCodeBaseFileName `
+                        -FileContentBytes $qrCodeBytesForWeb `
+                        -FolderPathInRepo $githubConfig.QrcodeFolderPath `
+                        -GitHubConfig $githubConfig `
+                        -DebugMode:$DebugMode
+
+                    if ($uploadResultQrCode) {
+                        $qrCodeImageUrl_raw_for_digital_card = $uploadResultQrCode.download_url
+                        Write-Host "    QR Code web URL (pour signature mail - raw.githubusercontent.com) : $qrCodeImageUrl_raw_for_digital_card" -ForegroundColor Green
+
+                        $qrCodeImageUrl_pages_for_digital_card = "$($githubConfig.PagesBaseUrl)/$($githubConfig.QrcodeFolderPath)/$tempQrCodeBaseFileName"
+                        Write-Host "    QR Code web URL (pour carte numérique - github.io) : $qrCodeImageUrl_pages_for_digital_card" -ForegroundColor Green
+
+                    } else {
+                        Write-Warning "Échec de l'upload du QR Code pour la carte numérique. Il pourrait ne pas s'afficher."
+                    }
                 } else {
-                    Write-Warning "Échec de l'upload du QR Code pour la carte numérique. Il pourrait ne pas s'afficher."
+                    Write-Warning "Contenu du QR Code web vide. L'upload vers GitHub sera ignoré."
                 }
             } else {
-                Write-Warning "Contenu du QR Code web vide. L'upload vers GitHub sera ignoré."
+                Write-Warning "Échec de la génération du QR Code web temporaire. L'upload vers GitHub sera ignoré."
             }
-        } else {
-            Write-Warning "Échec de la génération du QR Code web temporaire. L'upload vers GitHub sera ignoré."
-        }
 
-        # --- IMPORTANT : Mise à jour du HTML de la carte numérique avec la bonne URL QR code et les données téléphone/boutons ---
-        $vcfContent = "BEGIN:VCARD`nVERSION:3.0`nN:$($familyName_val);$($givenName_val);;;`nFN:$($givenName_val) $($familyName_val)`nORG:$($config.OrgName)"
-        if (-not [string]::IsNullOrEmpty($title_val)) { $vcfContent += "`nTITLE:$title_val" }
-        
-        # LOGIQUE VCF: Utilise les numéros bruts.
-        if (-not [string]::IsNullOrEmpty($phoneData.RawWorkPhone)) { $vcfContent += "`nTEL;type=WORK,voice:$($phoneData.RawWorkPhone)" }
-        if (-not [string]::IsNullOrEmpty($phoneData.RawMobilePhone)) { $vcfContent += "`nTEL;type=CELL,voice:$($phoneData.RawMobilePhone)" }
-        # Ajouter le standard à la vCard si c'est le numéro principal par défaut, et qu'il n'y a pas de work/mobile de GAM
-        if ($phoneData.UsedDefaultPhoneAsPrimary -and -not $phoneData.HasWorkPhoneFromGam -and -not $phoneData.HasMobilePhoneFromGam) {
-            $vcfContent += "`nTEL;type=WORK,voice:$($config.DefaultPhoneNumberRaw)"
+            # --- IMPORTANT : Mise à jour du HTML de la carte numérique avec la bonne URL QR code et les données téléphone/boutons ---
+            $vcfContent = "BEGIN:VCARD`nVERSION:3.0`nN:$($familyName_val);$($givenName_val);;;`nFN:$($givenName_val) $($familyName_val)`nORG:$($config.OrgName)"
+            if (-not [string]::IsNullOrEmpty($title_val)) { $vcfContent += "`nTITLE:$title_val" }
+            
+            # LOGIQUE VCF: Utilise les numéros bruts.
+            if (-not [string]::IsNullOrEmpty($phoneData.RawWorkPhone)) { $vcfContent += "`nTEL;type=WORK,voice:$($phoneData.RawWorkPhone)" }
+            if (-not [string]::IsNullOrEmpty($phoneData.RawMobilePhone)) { $vcfContent += "`nTEL;type=CELL,voice:$($phoneData.RawMobilePhone)" }
+            # Ajouter le standard à la vCard si c'est le numéro principal par défaut, et qu'il n'y a pas de work/mobile de GAM
+            if ($phoneData.UsedDefaultPhoneAsPrimary -and -not $phoneData.HasWorkPhoneFromGam -and -not $phoneData.HasMobilePhoneFromGam) {
+                $vcfContent += "`nTEL;type=WORK,voice:$($config.DefaultPhoneNumberRaw)"
+            }
+            
+            $vcfContent += "`nEMAIL;type=INTERNET;type=WORK;type=pref:$primaryEmail_val"
+            $vcfContent += "`nADR;type=WORK:;;$($address_val -replace "`r`n|`n", '\n');;;;"
+            $vcfContent += "`nEND:VCARD"
+            
+            $vcfEncodedForUrl = [System.Net.WebUtility]::UrlEncode($vcfContent).Replace("+", "%20")
+            $vcfDataUrl = "data:text/vcard;charset=utf-8,$vcfEncodedForUrl"
+            $vcardDownloadName = "$($givenName_val)_$($familyName_val).vcf".Replace(" ", "_")
+            
+            $cardTemplateContent_digital = Get-TemplateContent($config.DigitalCardTemplatePath)
+
+            $replacements = @{
+                '{{logo_url}}'               = $config.DigitalCardLogoUrl
+                '{{user_full_name}}'         = "$givenName_val $familyName_val"
+                '{{user_title}}'             = $title_val
+                '{{contact_list_html}}'      = $cardContactTextHtmlForDigitalCard
+                '{{action_buttons_html}}'    = $actionButtonsHtmlForDigitalCard
+                '{{vcf_url}}'                = $vcfDataUrl
+                '{{vcf_download_name}}'      = $vcardDownloadName
+                '{{qrcode_image_url}}'       = $qrCodeImageUrl_pages_for_digital_card
+                '{{digital_card_page_url}}'  = $downloaderPageUrl_final
+                '{{address_label}}'          = $addressLabelForCard
+                '{{address_texte}}'          = $addressForDigitalCard
+                '{{website_html_for_card}}'  = ""
+            }
+
+            $downloaderPageContent = $cardTemplateContent_digital
+            foreach ($key in $replacements.Keys) {
+                $downloaderPageContent = $downloaderPageContent -replace $key, $replacements[$key]
+            }
         }
         
-        $vcfContent += "`nEMAIL;type=INTERNET;type=WORK;type=pref:$primaryEmail_val"
-        $vcfContent += "`nADR;type=WORK:;;$($address_val -replace "`r`n|`n", '\n');;;;"
-        $vcfContent += "`nEND:VCARD"
-        
-        $vcfEncodedForUrl = [System.Net.WebUtility]::UrlEncode($vcfContent).Replace("+", "%20")
-        $vcfDataUrl = "data:text/vcard;charset=utf-8,$vcfEncodedForUrl"
-        $vcardDownloadName = "$($givenName_val)_$($familyName_val).vcf".Replace(" ", "_")
-        
-        $cardTemplateContent_digital = Get-TemplateContent($config.DigitalCardTemplatePath)
-
-        $replacements = @{
-            '{{logo_url}}'             = $config.DigitalCardLogoUrl
-            '{{user_full_name}}'       = "$givenName_val $familyName_val"
-            '{{user_title}}'           = $title_val
-            '{{contact_list_html}}'    = $cardContactTextHtmlForDigitalCard
-            '{{action_buttons_html}}'  = $actionButtonsHtmlForDigitalCard # <-- Cette variable est maintenant correctement formatée pour le suivi GA4
-            '{{vcf_url}}'              = $vcfDataUrl
-            '{{vcf_download_name}}'    = $vcardDownloadName
-            '{{qrcode_image_url}}'     = $qrCodeImageUrl_pages_for_digital_card
-            '{{digital_card_page_url}}'= $downloaderPageUrl_final
-            '{{address_label}}'        = $addressLabelForCard
-            '{{address_texte}}'        = $addressForDigitalCard
-            '{{website_html_for_card}}'= ""
-        }
-
-        $downloaderPageContent = $cardTemplateContent_digital
-        foreach ($key in $replacements.Keys) {
-            $downloaderPageContent = $downloaderPageContent -replace $key, $replacements[$key]
-        }
-
+        # Ce bloc s'exécute pour tous les cas traités ci-dessus
         $downloaderPageBytes = [System.Text.Encoding]::UTF8.GetBytes($downloaderPageContent)
         $uploadResultDownloader = Invoke-GitPublish `
             -FileName $downloaderPageFileName `
@@ -821,9 +877,11 @@ foreach ($user in $usersToProcess) {
         }
     }
 
+
     # --- LOGIQUE POUR LE BLOC QR CODE DANS LA SIGNATURE MAIL ---
     $digital_card_html_block = ""
-    if ($AddDigitalCard -and (-not [string]::IsNullOrEmpty($qrCodeImageUrl_raw_for_digital_card))) {
+    # La signature ne doit pas inclure la carte si le compte est suspendu
+    if ($AddDigitalCard -and (-not [string]::IsNullOrEmpty($qrCodeImageUrl_raw_for_digital_card)) -and -not $isSuspended) {
         $digital_card_html_block = @"
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="padding-top:10px;"><tr>
 <td style="width:100%; text-align: right; vertical-align: middle;">
@@ -841,8 +899,8 @@ foreach ($user in $usersToProcess) {
 </tr></table>
 "@
     } else {
-        if ($AddDigitalCard) {
-            Write-Warning "Le bloc QR Code pour la signature ne sera pas généré (URL QR code manquante)."
+        if ($AddDigitalCard -or $CleanInactiveCards) {
+            Write-Warning "Le bloc QR Code pour la signature ne sera pas généré (URL QR code manquante ou compte suspendu)."
         } else {
             Write-Host "Le bloc QR Code pour la signature est désactivé (-AddDigitalCard non spécifié)." -ForegroundColor DarkGray
         }
@@ -886,10 +944,10 @@ foreach ($user in $usersToProcess) {
         $logPhoneLines += "Téléphone (standard - principal) : $($config.DefaultPhoneNumberDisplay)"
     }
 
-    Write-Host "  - Prénom      : $givenName_val" -ForegroundColor Gray
-    Write-Host "  - Nom         : $familyName_val" -ForegroundColor Gray
-    Write-Host "  - Titre       : $(if ([string]::IsNullOrEmpty($title_val)) { '(aucun)' } else { $title_val })" -ForegroundColor Gray
-    Write-Host "  - Adresse     : $addressForSignature" -ForegroundColor Gray
+    Write-Host "  - Prénom        : $givenName_val" -ForegroundColor Gray
+    Write-Host "  - Nom           : $familyName_val" -ForegroundColor Gray
+    Write-Host "  - Titre         : $(if ([string]::IsNullOrEmpty($title_val)) { '(aucun)' } else { $title_val })" -ForegroundColor Gray
+    Write-Host "  - Adresse       : $addressForSignature" -ForegroundColor Gray
     if ($logPhoneLines.Count -gt 0) { foreach($line in $logPhoneLines){ Write-Host "  - Téléphone   : $line" -ForegroundColor Gray } } else { Write-Host "  - Téléphone   : (aucun)" -ForegroundColor Gray }
 
     $functionLineConditional = ""; if ($title_val -ne "") { $functionLineConditional = "<span style=`"font-size: 10pt; color: #555555;`">" + $title_val.Trim() + "</span>" }
@@ -909,7 +967,7 @@ foreach ($user in $usersToProcess) {
         '{{website_url}}'             = $config.WebsiteUrl
         '{{website_display_url}}'     = $config.WebsiteDisplayUrl
         '{{org_name}}'                = $config.OrgName
-		# --- NOUVELLES LIGNES À AJOUTER ICI ---
+        # --- NOUVELLES LIGNES À AJOUTER ICI ---
         '{{gcsms_logo_url}}'          = $config.GcsmsLogoUrl
         '{{facebook_logo_url}}'       = $config.FacebookLogoUrl
         '{{linkedin_logo_url}}'       = $config.LinkedinLogoUrl
