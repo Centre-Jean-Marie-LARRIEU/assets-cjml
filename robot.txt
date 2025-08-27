@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /
+
+User-agent: *
+Allow: /vcars/mentions-legales.html

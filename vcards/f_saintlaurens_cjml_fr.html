@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-KHZKJNZM');</script>
-<!-- End Google Tag Manager -->
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - Françoise Saint LAURENS</title>
+	<meta name="robots" content="noindex, nofollow"> 
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -394,6 +393,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             opacity: 0;
             visibility: hidden;
             box-sizing: border-box;
+            /* Ajustement pour remonter le bandeau sur les petits écrans afin de ne pas cacher le bas de la carte */
+            padding-bottom: env(safe-area-inset-bottom, 15px);
         }
         #cookieConsentBanner.show {
             transform: translateY(0);
@@ -405,28 +406,30 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             font-size: 0.9em;
             color: var(--text-dark);
             text-align: center;
-            max-width: 600px;
+            max-width: 800px;
         }
         #cookieConsentBanner .consent-buttons {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap; /* Empêche les boutons de passer à la ligne */
             justify-content: center;
-            gap: 10px;
-            width: 100%;
-            max-width: 300px;
+            gap: 5px; /* Réduit l'espace entre les boutons */
+            width: 100%; /* Permet aux boutons de s'étirer si nécessaire */
+            max-width: 380px; /* Contraint la largeur sur les grands écrans */
+            box-sizing: border-box;
         }
         #cookieConsentBanner .consent-button {
-            flex-grow: 1;
-            padding: 10px 18px;
+            flex-grow: 1; /* Permet aux boutons de prendre la place disponible */
+            padding: 8px 12px; /* Réduit le padding pour plus de compacité */
             border-radius: 7px;
             font-weight: 500;
-            font-size: 0.9em;
+            font-size: 0.8em; /* Réduit la taille de la police */
             cursor: pointer;
             border: 1px solid var(--primary-blue);
             background-color: var(--primary-blue);
             color: white;
             transition: background-color 0.2s ease, transform 0.2s ease;
             box-sizing: border-box;
+            white-space: nowrap; /* Empêche le texte de se briser */
         }
         #cookieConsentBanner .consent-button.deny {
             background-color: #f0f0f0;
@@ -437,32 +440,34 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             opacity: 0.9;
             transform: translateY(-1px);
         }
+        /* Ajustements pour les petits écrans (pour forcer en ligne) */
         @media (max-width: 480px) {
             #cookieConsentBanner {
-                padding: 15px;
+                padding: 10px 15px; /* Réduit le padding vertical */
             }
             #cookieConsentBanner p {
-                font-size: 0.85em;
+                font-size: 0.8em; /* Texte du bandeau plus petit */
             }
             #cookieConsentBanner .consent-buttons {
-                flex-direction: column;
+                flex-direction: row; /* Force les boutons à rester sur une ligne */
+                flex-wrap: nowrap; /* Maintient sur une ligne */
+                justify-content: space-between; /* Espace les boutons */
                 width: 100%;
                 max-width: none;
+                gap: 5px; /* Petit espacement entre les boutons */
             }
             #cookieConsentBanner .consent-button {
-                width: 100%;
-                text-align: center;
+                flex-grow: 1; /* Permet un peu de flexibilité */
+                min-width: 0; /* Permet aux boutons de réduire leur taille si nécessaire */
+                padding: 6px 8px; /* Padding encore plus petit */
+                font-size: 0.75em; /* Texte encore plus petit */
             }
         }
     </style>
-	<link rel="icon" href="../favicon.ico" type="image/x-icon">
-
-    </head>
+</head>
 <body>
-<!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KHZKJNZM"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
     <div class="card">
         <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-horizontal.jpg" alt="Logo" class="logo">
         <h1>Françoise Saint LAURENS</h1>
@@ -513,7 +518,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <p class="qr-overlay-text" style="margin-bottom: 0;">Partager la carte de visite de <br><b>Françoise Saint LAURENS</b></p>
             <div class="share-options-menu">
                 <button class="share-option-button" id="nativeShareButton" onclick="handleNativeShare()">Partager (appareil)</button>
-                <a href="mailto:?subject=Carte de Visite de Françoise Saint LAURENS&body=Découvrez la carte de visite numérique de Françoise Saint LAURENS : https://ressources.cjml.fr/vcards/f_saintlaurens_cjml_fr.html" class="share-option-button" id="emailShareButton">Envoyer par Email</a>
+                <a href="mailto:?subject=Carte de Visite de Françoise Saint LAURENS&body=Découvrez la carte de Visite numérique de Françoise Saint LAURENS : https://ressources.cjml.fr/vcards/f_saintlaurens_cjml_fr.html" class="share-option-button" id="emailShareButton">Envoyer par Email</a>
                 <button class="share-option-button" id="copyLinkShareButton" onclick="copyLink()">Copier le lien</button>
             </div>
         </div>
@@ -563,7 +568,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         async function handleNativeShare() {
             const shareData = {
                 title: 'Carte de Visite Numérique de Françoise Saint LAURENS',
-                text: 'Découvrez la carte de visite numérique de Françoise Saint LAURENS : https://ressources.cjml.fr/vcards/f_saintlaurens_cjml_fr.html',
+                text: 'Découvrez la carte de Visite numérique de Françoise Saint LAURENS : https://ressources.cjml.fr/vcards/f_saintlaurens_cjml_fr.html',
                 url: 'https://ressources.cjml.fr/vcards/f_saintlaurens_cjml_fr.html'
             };
 
@@ -573,7 +578,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     console.log('Partage natif réussi');
                 } catch (err) {
                     console.log('Erreur de partage natif ou annulé: ', err);
-                }
+                } 
             } else {
                 alert("La fonction de partage native n'est pas disponible sur votre appareil/navigateur. Veuillez utiliser 'Envoyer par Email' ou 'Copier le lien'.");
             }
@@ -610,62 +615,42 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         // --- SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS ---
         const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // VOTRE ID GA4
 
-        // sendGAEvent ne pousse plus directement vers gtag, mais vers dataLayer
-        function sendGAEvent(command, ...args) {
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push(arguments); // arguments contient [command, ...args]
-            console.log(`GA command pushed to dataLayer: ${command}`, args);
-        }
-
         function initializeGoogleAnalytics() {
-            if (window.gaInitialized) return;
+            if (window.gaInitialized) return; 
+            
+            if (typeof window.gtag !== 'function') {
+                console.error('Erreur: gtag n\'est pas défini globalement avant initializeGoogleAnalytics(). Le suivi ne peut pas être initialisé.');
+                return;
+            }
 
-            window.dataLayer = window.dataLayer || [];
+            gtag('js', new Date()); 
+            gtag('set', { 'card_user_name': 'Françoise Saint LAURENS' });
+            gtag('config', GA4_MEASUREMENT_ID);
 
-            // Poussez card_user_name DÈS QUE POSSIBLE dans le dataLayer
-            // La "Balise Google" de GTM (si bien configurée) le lira
-            window.dataLayer.push({
-                'card_user_name': 'Françoise Saint LAURENS'
-            });
-            console.log('card_user_name pushed to DataLayer:', 'Françoise Saint LAURENS');
-
-            // --- IMPORTANT : SUPPRIMEZ ICI LE CHARGEMENT DIRECT DE GTAG.JS ---
-            // Supprimez les lignes suivantes si elles étaient présentes:
-            // const gtagScript = document.createElement('script');
-            // gtagScript.async = true;
-            // gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
-            // document.head.appendChild(gtagScript);
-
-            // --- IMPORTANT : SUPPRIMEZ AUSSI CES APPELS QUI SERONT GÉRÉS PAR GTM ---
-            // sendGAEvent('js', new Date());
-            // sendGAEvent('config', GA4_MEASUREMENT_ID);
-
-            // GTM, via sa "Balise Google" configurée, chargera gtag.js et enverra le page_view
-            console.log('Google Analytics initialisation process now managed by GTM.');
+            console.log('Google Analytics initialisé (via consentement).');
 
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', setupGAEventListeners);
             } else {
                 setupGAEventListeners();
             }
-
-            window.gaInitialized = true;
+            window.gaInitialized = true; 
         }
 
         function setupGAEventListeners() {
             const userName = 'Françoise Saint LAURENS';
 
             function sendButtonClickEvent(category, label, text) {
-                // Utilise la fonction sendGAEvent pour plus de robustesse
-                sendGAEvent('event', 'button_click', {
-                    'event_category': category,
-                    'event_label': label + ' - ' + userName,
-                    'button_text': text,
-                    // Incluez card_user_name explicitement pour les événements si vous voulez le voir attaché à chaque événement
-                    // Bien que pour la propriété utilisateur, la "Balise Google" le gère globalement
-                    'card_user_name': userName 
-                });
-                console.log('GA Event Queued (via sendGAEvent): ', category, label, text);
+                if (typeof window.gtag === 'function') {
+                    gtag('event', 'button_click', {
+                        'event_category': category,
+                        'event_label': label + ' - ' + userName,
+                        'button_text': text
+                    });
+                    console.log('GA Event Sent: ', category, label, text);
+                } else {
+                    console.warn('Erreur: gtag n\'est pas disponible pour envoyer l\'événement de clic.');
+                }
             }
 
             document.getElementById('saveContactButton')?.addEventListener('click', function() {
