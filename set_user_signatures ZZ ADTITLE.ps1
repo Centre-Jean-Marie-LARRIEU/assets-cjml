@@ -85,7 +85,7 @@ PARAMÈTRES:
 
 EXEMPLES:
     # Affiche cette aide complète
-#     .\set_user_signatures.ps1 -ShowHelp
+    .\set_user_signatures.ps1 -ShowHelp
 
     # Met à jour la signature ET la carte de visite numérique pour un utilisateur spécifique
     # Le site web est configuré directement dans le script.
