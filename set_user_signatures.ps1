@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v49.03 - Nettoyage des cartes de visite en paramètre)
+﻿# set_user_signatures.ps1 (v49.18 - Correction de la logique de récupération des utilisateurs)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -13,7 +13,7 @@ param(
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
-$script:ScriptVersion = "v49.03 - Correction du mode de nettoyage"
+$script:ScriptVersion = "v49.18 - Correction de la logique de récupération des utilisateurs"
 Write-Host "Démarrage du script : set_user_signatures.ps1 ($script:ScriptVersion)" -ForegroundColor Green
 
 if ($ShowHelp) {
@@ -331,7 +331,7 @@ function Generate-QrCodeFile {
         return $true
     } catch {
         Write-Error "Échec de la génération du QR Code pour '$OutputFileName'. Erreur: $($_.Exception.Message)"
-        return $false
+        return false
     }
 }
 
@@ -367,8 +367,8 @@ function Get-UserPhoneData {
         RawPrimaryDisplayPhone = ""; # Le numéro qui sera affiché en premier (work > mobile > standard)
         RawPrimaryDialPhone = ""; # Le numéro à composer pour la ligne principale
         UsedDefaultPhoneAsPrimary = $false; # Indique si le numéro principal est le standard par défaut
-        HasMobilePhoneFromGam = $false; # Indique si un vrai numéro mobile de GAM est présent
-        HasWorkPhoneFromGam = $false; # Indique si un vrai numéro de travail de GAM est présent
+        HasMobilePhoneFromGam = false; # Indique si un vrai numéro mobile de GAM est présent
+        HasWorkPhoneFromGam = false; # Indique si un vrai numéro de travail de GAM est présent
     }
     
     $gamWorkPhoneParsed = $null
@@ -380,7 +380,7 @@ function Get-UserPhoneData {
 
         if ($UserObject.PSObject.Properties.Name -contains $typeProperty -and $UserObject.PSObject.Properties.Name -contains $valueProperty) {
             $phoneType = $UserObject.$typeProperty
-            $phoneValue = $UserObject.$valueProperty
+            $phoneValue = $UserObject.$valueValue
 
             $formatted = Format-PhoneNumber($phoneValue)
             if ($formatted) {
@@ -427,15 +427,16 @@ function Get-UserPhoneData {
         $phoneData.UsedDefaultPhoneAsPrimary = $true
     }
 
-    # Les champs WorkPhoneHtmlForSignature et MobilePhoneHtmlForSignature ne sont plus générés ici,
-    # mais directement dans le bloc de préparation de la signature (phoneBlockHtmlForSignatureFinal)
-    # pour une flexibilité maximale dans l'ordre et les labels.
-
     return $phoneData
 }
 
 
 function Get-TemplateContent($TemplatePath) {
+    # Vérifier si le chemin existe pour éviter l'erreur
+    if (-not (Test-Path $TemplatePath)) {
+        Write-Error "Template non trouvé à l'emplacement : $TemplatePath"
+        return $null
+    }
     $content = Get-Content -Path $TemplatePath -Encoding UTF8 -Raw
     return $content.TrimStart([char]65279, [char]22)
 }
@@ -444,25 +445,30 @@ function Get-TemplateContent($TemplatePath) {
 $usersToProcess = @()
 if (-not $ShowHelp) {
     $fieldsToGet = 'primaryEmail,name,organizations,phones,addresses,suspended'
+    
+    # Construction de la commande GAM pour le mode SingleUserEmail
     if (-not [string]::IsNullOrEmpty($SingleUserEmail)) {
         Write-Host "--- MODE UTILISATEUR UNIQUE: Cible l'utilisateur '$SingleUserEmail' ---" -ForegroundColor Yellow
-        $gamArgs = @(
-            'print', 'users',
-            'query', "email='$SingleUserEmail'"
-        )
-        if ($IncludeSuspended -or $CleanInactiveCards) {
-             # No specific query needed if we need to include suspended or clean them
+        $gamArgs = @('print', 'users', 'query', "email='$SingleUserEmail'", 'fields', $fieldsToGet);
+        
+        # Correction de la logique de récupération des utilisateurs pour SingleUserEmail
+        if ($CleanInactiveCards) {
+            $gamArgs = @('print', 'users', 'query', "email='$SingleUserEmail'", 'fields', $fieldsToGet);
         } else {
-             $gamArgs += 'query', 'isSuspended=False'
+            $gamArgs = @('print', 'users', 'query', "email='$SingleUserEmail' isSuspended=False", 'fields', $fieldsToGet);
         }
-        $gamArgs += 'fields', $fieldsToGet;
+
         Write-Host "DEBUG: GAM Command for single user: $($config.GamPath) $($gamArgs -join ' ')" -ForegroundColor DarkGray
         $gamOutput = & $config.GamPath $gamArgs | ConvertFrom-Csv
         if ($gamOutput) { $usersToProcess = $gamOutput }
         else { Write-Error "Impossible de récupérer les informations pour l'utilisateur '$SingleUserEmail'." }
     } else {
+        # Logique pour le mode multi-utilisateurs
+        Write-Host "--- MODE MULTI-UTILISATEURS ---" -ForegroundColor Yellow
         $gamArgs = @('print', 'users');
-        if (-not $IncludeSuspended -and -not $CleanInactiveCards) { $gamArgs += 'query', 'isSuspended=False' }
+        if (-not $IncludeSuspended -and -not $CleanInactiveCards) {
+            $gamArgs += 'query', 'isSuspended=False'
+        }
         $gamArgs += 'fields', $fieldsToGet;
         
         Write-Host "DEBUG: GAM Command for multiple users: $($config.GamPath) $($gamArgs -join ' ')" -ForegroundColor DarkGray
@@ -486,284 +492,62 @@ foreach ($user in $usersToProcess) {
     $isSuspended = [string]::Equals($user.suspended, "True", [System.StringComparison]::OrdinalIgnoreCase)
 
     Write-Host "--- Processing user: $primaryEmail_val (Suspended: $isSuspended) ---" -ForegroundColor Cyan
-
-    # Traitement de l'adresse
-    $address_val = $config.DefaultAddress
-    $addressLabelForCard = "Siège Social"
-
-    $addressFound = $false
-    for ($i = 0; $i -lt 5; $i++) {
-        $typeProperty = "addresses.$i.type"
-        $formattedProperty = "addresses.$i.formatted"
-
-        if ($user.PSObject.Properties.Name -contains $typeProperty -and $user.PSObject.Properties.Name -contains $formattedProperty) {
-            if ($user.$typeProperty -eq 'work' -and -not [string]::IsNullOrEmpty($user.$formattedProperty)) {
-                $address_val = $user.$formattedProperty.Trim()
-                $addressLabelForCard = "Adresse du Bureau"
-                $addressFound = $true
-                break
-            }
-        }
-    }
-
-    $addressForSignature = ($address_val -replace "`r`n|`n", " - ").Trim()
-    $addressForDigitalCard = ($address_val -replace "`r`n", "<br>").Trim()
-    $address_url_maps = "https://www.google.com/maps/search/?api=1&query=" + [System.Net.WebUtility]::UrlEncode($addressForSignature)
-
-
-    # Préparation des données téléphoniques
-    $phoneData = Get-UserPhoneData -UserObject $user -DefaultPhoneNumberRaw $config.DefaultPhoneNumberRaw -DefaultPhoneNumberDisplay $config.DefaultPhoneNumberDisplay
-
-    # --- DÉBOGAGE : Affichage des valeurs clés ---
-    if ($DebugMode) {
-        Write-Host "--- DÉBOGAGE: Données utilisateur et téléphone ---" -ForegroundColor Yellow
-        Write-Host "  Email: $primaryEmail_val" -ForegroundColor DarkCyan
-        Write-Host "  Nom Complet: $givenName_val $familyName_val" -ForegroundColor DarkCyan
-        Write-Host "  Titre: $title_val" -ForegroundColor DarkCyan
-        Write-Host "  Adresse Finale: $address_val (Label: $addressLabelForCard)" -ForegroundColor DarkCyan
-        Write-Host "  URL Maps: $address_url_maps" -ForegroundColor DarkCyan
-        $phoneData | Format-List -Force
-        Write-Host "--- FIN DÉBOGAGE ---" -ForegroundColor Yellow
-    }
-
-    # --- Préparation des variables spécifiques à la carte numérique et à la signature ---
-
-    $cardContactTextHtmlForDigitalCard = ""
-    $phoneBlockHtmlForSignatureFinal = "" # Nouveau: Initialiser ici pour la signature
-
-    $linkStyleGeneral = "color: #555555; text-decoration: underline;" # Style commun pour les liens de téléphone/email/adresse
-
-
-    # Logique pour construire les lignes de téléphone pour la CARTE NUMÉRIQUE et la SIGNATURE
-    # Ligne 1 : Mobile si présent, sinon Ligne directe si présente, sinon Téléphone du Centre
-    if ($phoneData.HasMobilePhoneFromGam) { # Priorité 1: Mobile de GAM
-        $cardContactTextHtmlForDigitalCard += @"
-<div class="contact-item"><span class="label">Mobile</span><a href="tel:$($phoneData.RawMobilePhone)">$($phoneData.MobilePhoneDisplayForTemplates)</a></div>
-"@
-        $phoneBlockHtmlForSignatureFinal += "Mobile : <a href=`"tel:$($phoneData.RawMobilePhone)`" style=`"$linkStyleGeneral`">$($phoneData.MobilePhoneDisplayForTemplates)</a><br>"
-    }
-
-    if ($phoneData.HasWorkPhoneFromGam) { # Priorité 2: Ligne directe (si présente)
-        $cardContactTextHtmlForDigitalCard += @"
-<div class="contact-item"><span class="label">Ligne directe</span><a href="tel:$($phoneData.RawWorkPhone)">$($phoneData.WorkPhoneDisplayForTemplates)</a></div>
-"@
-        $phoneBlockHtmlForSignatureFinal += "Ligne directe : <a href=`"tel:$($phoneData.RawWorkPhone)`" style=`"$linkStyleGeneral`">$($phoneData.WorkPhoneDisplayForTemplates)</a><br>"
-    }
-
-    # Toujours ajouter le Téléphone du Centre si aucun work phone n'est présent (que le mobile soit là ou non)
-    if (-not $phoneData.HasWorkPhoneFromGam) {
-        # Vérifier si le mobile de GAM est le seul numéro et le standard n'est pas déjà affiché comme principal (pour la signature)
-        # OU si le standard est le numéro principal (aucun work/mobile de GAM)
-        # Évitons la duplication: si Mobile EST la ligne principale dans phoneData, ET c'est le seul numéro GAM.
-        # On va l'ajouter si le mobile n'est PAS le numéro du centre.
-        if ($phoneData.RawMobilePhone -ne $config.DefaultPhoneNumberRaw) { # Pour éviter de dupliquer si le mobile est aussi le standard
-            $cardContactTextHtmlForDigitalCard += @"
-<div class="contact-item"><span class="label">Téléphone (Centre)</span><a href="tel:$($config.DefaultPhoneNumberRaw)">$($config.DefaultPhoneNumberDisplay)</a></div>
-"@
-            # Pour la signature, n'ajouter que si le standard n'est pas déjà le mobile principal
-            if ($phoneData.RawPrimaryDialPhone -ne $config.DefaultPhoneNumberRaw -or -not $phoneData.HasMobilePhoneFromGam) { # Si standard est principal OU si mobile est principal mais standard est un autre numero
-                $phoneBlockHtmlForSignatureFinal += "Téléphone (Centre) : <a href=`"tel:$($config.DefaultPhoneNumberRaw)`" style=`"$linkStyleGeneral`">$($config.DefaultPhoneNumberDisplay)</a><br>"
-            }
-        }
-    }
-
-
-    # Email
-    $cardContactTextHtmlForDigitalCard += @"
-<div class="contact-item"><span class="label">Email</span><a href="mailto:$primaryEmail_val">$primaryEmail_val</a></div>
-"@
-    $phoneBlockHtmlForSignatureFinal += "<a href=`"mailto:$primaryEmail_val`" style=`"$linkStyleGeneral`">$primaryEmail_val</a><br>"
-
-
-    # Site Web
-    if (-not [string]::IsNullOrEmpty($config.WebsiteUrl)) {
-        $cardContactTextHtmlForDigitalCard += @"
-<div class="contact-item">
-    <span class="label">Site Web</span>
-    <a href="$($config.WebsiteUrl)" target="_blank" rel="noopener noreferrer" style="color: var(--primary-blue); text-decoration: underline;">$($config.WebsiteDisplayUrl)</a>
-</div>
-"@
-        $phoneBlockHtmlForSignatureFinal += "<a href=`"$($config.WebsiteUrl)`" target=`"_blank`" rel=`"noopener noreferrer`" style=`"color: #FCB041; text-decoration: underline; font-weight: bold;`">$($config.OrgName)</a><br>"
-    }
-    # Adresse (toujours en dernière position)
-    $cardContactTextHtmlForDigitalCard += @"
-<div class="contact-item">
-    <span class="label">$addressLabelForCard</span>
-    <a href="https://www.google.com/maps/search/?api=1&query=$([System.Net.WebUtility]::UrlEncode($addressForSignature))" target="_blank" rel="noopener noreferrer">$addressForSignature</a>
-</div>
-"@
-    $phoneBlockHtmlForSignatureFinal += "<a href=`"$address_url_maps`" target=`"_blank`" rel=`"noopener noreferrer`" style=`"$linkStyleGeneral`">$addressForSignature</a><br>"
-
-
-    # --- DÉBUT MODIFICATIONS POUR LE SUIVI GA4 DES BOUTONS D'ACTION DE LA CARTE NUMÉRIQUE ---
-    $actionButtonsHtmlForDigitalCard = ""
-    # Bouton Appeler (Mobile) - Seulement si un mobile GAM est présent
-    if ($phoneData.HasMobilePhoneFromGam -and (-not [string]::IsNullOrEmpty($phoneData.RawMobilePhone))) {
-        $actionButtonsHtmlForDigitalCard += @"
-<a href="tel:$($phoneData.RawMobilePhone)" class="button secondary trackable-action-button" data-analytics-label="Appeler (Mobile)">Appeler (Mobile)</a>
-"@
-    }
-    # Bouton Appeler (Direct)
-    if ($phoneData.HasWorkPhoneFromGam -and (-not [string]::IsNullOrEmpty($phoneData.RawWorkPhone))) {
-        $actionButtonsHtmlForDigitalCard += @"
-<a href="tel:$($phoneData.RawWorkPhone)" class="button secondary trackable-action-button" data-analytics-label="Appeler (Direct)">Appeler (Direct)</a>
-"@
-    }
-    # Bouton Appeler le Centre - Seulement si le standard n'est pas déjà le mobile ou le work phone
-    if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone -and $config.DefaultPhoneNumberRaw -ne $phoneData.RawWorkPhone) {
-        $actionButtonsHtmlForDigitalCard += @"
-<a href="tel:$($config.DefaultPhoneNumberRaw)" class="button secondary trackable-action-button" data-analytics-label="Appeler (Centre)">Appeler le Centre</a>
-"@
-    }
-
-    $actionButtonsHtmlForDigitalCard += @"
-<a href="mailto:$primaryEmail_val" class="button secondary trackable-action-button" data-analytics-label="Envoyer Email">Envoyer un Email</a>
-"@
-    $actionButtonsHtmlForDigitalCard += @"
-<a href="$address_url_maps" target="_blank" class="button secondary trackable-action-button" data-analytics-label="Itinéraire">Itinéraire</a>
-"@
-    # --- FIN MODIFICATIONS POUR LE SUIVI GA4 DES BOUTONS D'ACTION DE LA CARTE NUMÉRIQUE ---
-
-    # Génération du nom de fichier pour la page de téléchargement et son URL finale
-    $downloaderPageFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_').html"
-    $downloaderPageUrl_final = "$($githubConfig.PagesBaseUrl)/$($githubConfig.VcardFolderPath)/$downloaderPageFileName"
-
-    # --- Génération des QR Codes et Cartes imprimables (locales) ---
-    if ($GeneratePrintQr -or $GeneratePrintableCard -or $GeneratePdfCard) {
-        $qrPrintFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_')_print_qrcode.png"
-        Write-Host "  - Génération du QR Code pour impression : '$qrPrintFileName' dans '$($config.PrintQrOutputFolder)'..." -ForegroundColor DarkYellow
-        $printQrSuccess = Generate-QrCodeFile `
-            -QrDataUrl $downloaderPageUrl_final `
-            -OutputFileName $qrPrintFileName `
-            -OutputFolder $config.PrintQrOutputFolder `
-            -QrCodeColors $config.QrCodeColors `
-            -PixelsPerModule 100
-        if (-not $printQrSuccess) {
-            Write-Warning "La génération du QR Code imprimable a échoué. La carte imprimable/PDF pourrait être incomplète."
-        }
-    }
-
-    # Préparer le contenu HTML pour la carte imprimable/PDF
-    $printableCardTemplateContent = Get-TemplateContent($config.PrintableCardTemplatePath)
-
-    # --- Remplacements pour la carte imprimable / PDF (utilisation de la hashtable) ---
-    $printableCardReplacements = @{
-        '{{digital_card_logo_url_for_print}}' = $config.PrintLogoUrl
-        '{{user_full_name}}'                  = "$givenName_val $familyName_val"
-        '{{user_title}}'                      = $title_val
-        '{{contact_list_html}}'               = $cardContactTextHtmlForDigitalCard # <- UTILISE LA MÊME VARIABLE ICI
-        '{{address_label}}'                   = $addressLabelForCard # Maintenu au cas où ce soit utilisé pour un label spécifique
-        '{{address_text_print}}'              = ($address_val -replace "`r`n", "<br>") # Maintenu pour backward compatibility si besoin
-        '{{website_url}}'                     = $config.WebsiteUrl
-        '{{website_display_url}}'             = $config.WebsiteDisplayUrl
-        '{{qrcode_print_url}}'                = (Join-Path -Path $config.PrintQrOutputFolder -ChildPath $qrPrintFileName)
-    }
-
-    $finalPrintableCardHtml = $printableCardTemplateContent
-    foreach ($key in $printableCardReplacements.Keys) {
-        $finalPrintableCardHtml = $finalPrintableCardHtml -replace $key, $printableCardReplacements[$key]
-    }
-    # --- FIN Remplacements pour la carte imprimable / PDF ---
-
-    # Génération du fichier HTML pour la carte imprimable
-    if ($GeneratePrintableCard) {
-        $printableCardFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_')_print_card.html"
-        Write-Host "  - Génération de la carte de visite HTML imprimable : '$printableCardFileName' dans '$($config.PrintableCardOutputFolder)'..." -ForegroundColor DarkYellow
-
-        if (-not (Test-Path $config.PrintableCardOutputFolder)) {
-            New-Item -ItemType Directory -Path $config.PrintableCardOutputFolder -Force | Out-Null
-        }
-
-        try {
-            $outputPath = Join-Path -Path $config.PrintableCardOutputFolder -ChildPath $printableCardFileName
-            [System.IO.File]::WriteAllText($outputPath, $finalPrintableCardHtml, [System.Text.Encoding]::UTF8)
-            Write-Host "    Carte de visite HTML imprimable générée : $outputPath" -ForegroundColor Green
-        } catch {
-            Write-Error "Échec de la génération du carte de visite HTML imprimable pour '$printableCardFileName'. Erreur: $($_.Exception.Message)"
-        }
-    }
-
-    # NOUVEAU BLOC : Génération PDF de la carte imprimable
-    if ($GeneratePdfCard) {
-        $pdfFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_')_card.pdf"
-        $pdfOutputPath = Join-Path -Path $config.PdfCardOutputFolder -ChildPath $pdfFileName
-        $tempHtmlForPdfPath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "$($pdfFileName).html"
-
-        Write-Host "  - Génération PDF de la carte de visite pour : '$primaryEmail_val'..." -ForegroundColor DarkYellow
-
-        if (-not (Test-Path $config.PdfCardOutputFolder)) {
-            New-Item -ItemType Directory -Path $config.PdfCardOutputFolder -Force | Out-Null
-        }
-
-        try {
-            [System.IO.File]::WriteAllText($tempHtmlForPdfPath, $finalPrintableCardHtml, [System.Text.Encoding]::UTF8)
-
-            $wkhtmltopdfArgs = @(
-                '--page-width', '85mm',
-                '--page-height', '55mm',
-                '--margin-top', '0mm',
-                '--margin-bottom', '0mm',
-                '--margin-left', '0mm',
-                '--margin-right', '0mm',
-                '--no-stop-slow-scripts',
-                '--enable-local-file-access',
-                '--print-media-type',
-                '--dpi', '300',
-                $tempHtmlForPdfPath,
-                $pdfOutputPath
-            )
-
-            Write-Host "    Appel wkhtmltopdf : $($config.WkhtmltopdfPath) $($wkhtmltopdfArgs -join ' ')" -ForegroundColor DarkGray
-            
-            $wkhtmltopdfResult = & $config.WkhtmltopdfPath $wkhtmltopdfArgs 2>&1
-            
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host "    Carte de visite PDF générée : $pdfOutputPath" -ForegroundColor Green
-            } else {
-                Write-Error "Échec de la génération du PDF pour '$pdfFileName'. Erreur: $($wkhtmltopdfResult | Out-String)"
-            }
-
-        } catch {
-            Write-Error "Erreur lors de l'appel de wkhtmltopdf pour '$pdfFileName'. Erreur: $($_.Exception.Message)"
-        } finally {
-            Remove-Item -Path $tempHtmlForPdfPath -ErrorAction SilentlyContinue
-        }
-    }
-
-
-    # --- Logique pour la Carte de Visite Numérique (et son QR Code) vers GitHub ---
-    $qrCodeImageUrl_raw_for_digital_card = ""
-    $qrCodeImageUrl_pages_for_digital_card = ""
-
-    # Correction : La logique de la carte de visite s'active si AddDigitalCard OU CleanInactiveCards sont utilisés
+    
+    # --- Logique de mise à jour de la carte numérique (Active ou Inactive) ---
     if (($AddDigitalCard -or $CleanInactiveCards) -and $githubConfig.Token) {
+        $downloaderPageFileName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_').html"
+        $targetQrCodeName = "$($primaryEmail_val -replace '[^a-zA-Z0-9]','_').png"
+        $downloaderPageUrl_final = "$($githubConfig.PagesBaseUrl)/$($githubConfig.VcardFolderPath)/$downloaderPageFileName"
+
+        $downloaderPageContent = $null # Initialiser la variable de contenu de la page
 
         # CAS 1 : C'est un compte suspendu et on veut le "nettoyer"
         if ($isSuspended -and $CleanInactiveCards) {
             Write-Host "--- Traitement du compte suspendu : Remplacement de la carte numérique... ---" -ForegroundColor Yellow
+            
+            $apiUrlCheck = "https://api.github.com/repos/$($githubConfig.UserOrOrg)/$($githubConfig.Repo)/contents/$($githubConfig.VcardFolderPath)/$downloaderPageFileName"
+            $headersCheck = @{ "Authorization" = "Bearer $($githubConfig.Token)"; "Accept" = "application/vnd.github.com.v3+json" }
+            $cardExistsOnGitHub = $false
+            try {
+                $existingFile = Invoke-RestMethod -Uri $apiUrlCheck -Method Get -Headers $headersCheck -ErrorAction SilentlyContinue
+                if ($existingFile) { $cardExistsOnGitHub = true }
+            } catch {}
 
-            # Utiliser le template de la carte inactive
-            $cardTemplateContent_inactive = Get-TemplateContent($config.InactiveCardTemplatePath)
-            
-            # Paramètres de remplacement pour le template inactif
-            $inactiveReplacements = @{
-                '{{secretariat_tel}}' = $config.DefaultPhoneNumberRaw
-                '{{secretariat_tel_display}}' = $config.DefaultPhoneNumberDisplay
-                '{{secretariat_email}}' = "info@cjml.fr" # Assurez-vous que cette adresse est correcte
-                '{{secretariat_website}}' = $config.WebsiteUrl
-                '{{secretariat_website_display}}' = $config.WebsiteDisplayUrl
-                '{{secretariat_address}}' = $config.DefaultAddress.Replace("`r`n", "<br>")
-                '{{secretariat_address_url}}' = [System.Net.WebUtility]::UrlEncode($config.DefaultAddress.Replace("`r`n", " - "))
-            }
+            if ($cardExistsOnGitHub) {
+                $cardTemplateContent_inactive = Get-TemplateContent($config.InactiveCardTemplatePath)
+                
+                $inactiveReplacements = @{
+                    '{{secretariat_tel}}' = $config.DefaultPhoneNumberRaw
+                    '{{secretariat_tel_display}}' = $config.DefaultPhoneNumberDisplay
+                    '{{secretariat_email}}' = "info@cjml.fr"
+                    '{{secretariat_website}}' = $config.WebsiteUrl
+                    '{{secretariat_website_display}}' = $config.WebsiteDisplayUrl
+                    '{{secretariat_address}}' = $config.DefaultAddress.Replace("`r`n", "<br>")
+                    '{{secretariat_address_url}}' = [System.Net.WebUtility]::UrlEncode($config.DefaultAddress.Replace("`r`n", " - "))
+                    '{{user_full_name}}' = "$givenName_val $familyName_val"
+                }
 
-            $downloaderPageContent = $cardTemplateContent_inactive
-            foreach ($key in $inactiveReplacements.Keys) {
-                $downloaderPageContent = $downloaderPageContent -replace $key, $inactiveReplacements[$key]
+                $downloaderPageContent = $cardTemplateContent_inactive
+                foreach ($key in $inactiveReplacements.Keys) {
+                    $downloaderPageContent = $downloaderPageContent -replace $key, $inactiveReplacements[$key]
+                }
+                
+                $downloaderPageBytes = [System.Text.Encoding]::UTF8.GetBytes($downloaderPageContent)
+                $uploadResultDownloader = Invoke-GitPublish `
+                    -FileName $downloaderPageFileName `
+                    -FileContentBytes $downloaderPageBytes `
+                    -FolderPathInRepo $githubConfig.VcardFolderPath `
+                    -GitHubConfig $githubConfig `
+                    -DebugMode:$DebugMode
+
+                if ($uploadResultDownloader) {
+                    Write-Host "    Digital Card page public URL: $downloaderPageUrl_final" -ForegroundColor Green
+                } else {
+                    Write-Warning "Échec de l'upload de la page de la carte numérique."
+                }
+            } else {
+                 Write-Host "  - Aucune carte de visite numérique trouvée pour cet utilisateur. Aucune action de nettoyage nécessaire." -ForegroundColor Yellow
             }
-            
-            # Note : on ne génère pas de nouveau QR code, on garde l'ancien pour les mails.
-            # L'upload de la carte inactive se fera dans la section suivante.
-            
         } 
         # CAS 2 : C'est un compte actif et on veut lui créer/mettre à jour sa carte
         elseif (-not $isSuspended -and $AddDigitalCard) {
@@ -817,15 +601,11 @@ foreach ($user in $usersToProcess) {
             } else {
                 Write-Warning "Échec de la génération du QR Code web temporaire. L'upload vers GitHub sera ignoré."
             }
-
-            # --- IMPORTANT : Mise à jour du HTML de la carte numérique avec la bonne URL QR code et les données téléphone/boutons ---
             $vcfContent = "BEGIN:VCARD`nVERSION:3.0`nN:$($familyName_val);$($givenName_val);;;`nFN:$($givenName_val) $($familyName_val)`nORG:$($config.OrgName)"
             if (-not [string]::IsNullOrEmpty($title_val)) { $vcfContent += "`nTITLE:$title_val" }
             
-            # LOGIQUE VCF: Utilise les numéros bruts.
             if (-not [string]::IsNullOrEmpty($phoneData.RawWorkPhone)) { $vcfContent += "`nTEL;type=WORK,voice:$($phoneData.RawWorkPhone)" }
             if (-not [string]::IsNullOrEmpty($phoneData.RawMobilePhone)) { $vcfContent += "`nTEL;type=CELL,voice:$($phoneData.RawMobilePhone)" }
-            # Ajouter le standard à la vCard si c'est le numéro principal par défaut, et qu'il n'y a pas de work/mobile de GAM
             if ($phoneData.UsedDefaultPhoneAsPrimary -and -not $phoneData.HasWorkPhoneFromGam -and -not $phoneData.HasMobilePhoneFromGam) {
                 $vcfContent += "`nTEL;type=WORK,voice:$($config.DefaultPhoneNumberRaw)"
             }
@@ -838,7 +618,7 @@ foreach ($user in $usersToProcess) {
             $vcfDataUrl = "data:text/vcard;charset=utf-8,$vcfEncodedForUrl"
             $vcardDownloadName = "$($givenName_val)_$($familyName_val).vcf".Replace(" ", "_")
             
-            $cardTemplateContent_digital = Get-TemplateContent($config.DigitalCardTemplatePath)
+            $cardTemplateContent_digital = Get-TemplateContent($config.DigitalCardTemplateName)
 
             $replacements = @{
                 '{{logo_url}}'               = $config.DigitalCardLogoUrl
@@ -859,28 +639,27 @@ foreach ($user in $usersToProcess) {
             foreach ($key in $replacements.Keys) {
                 $downloaderPageContent = $downloaderPageContent -replace $key, $replacements[$key]
             }
-        }
-        
-        # Ce bloc s'exécute pour tous les cas traités ci-dessus
-        $downloaderPageBytes = [System.Text.Encoding]::UTF8.GetBytes($downloaderPageContent)
-        $uploadResultDownloader = Invoke-GitPublish `
-            -FileName $downloaderPageFileName `
-            -FileContentBytes $downloaderPageBytes `
-            -FolderPathInRepo $githubConfig.VcardFolderPath `
-            -GitHubConfig $githubConfig `
-            -DebugMode:$DebugMode
+            
+            $downloaderPageBytes = [System.Text.Encoding]::UTF8.GetBytes($downloaderPageContent)
+            $uploadResultDownloader = Invoke-GitPublish `
+                -FileName $downloaderPageFileName `
+                -FileContentBytes $downloaderPageBytes `
+                -FolderPathInRepo $githubConfig.VcardFolderPath `
+                -GitHubConfig $githubConfig `
+                -DebugMode:$DebugMode
 
-        if ($uploadResultDownloader) {
-            Write-Host "    Digital Card page public URL: $downloaderPageUrl_final" -ForegroundColor Green
+            if ($uploadResultDownloader) {
+                Write-Host "    Digital Card page public URL: $downloaderPageUrl_final" -ForegroundColor Green
+            } else {
+                Write-Warning "Échec de l'upload de la page de la carte numérique."
+            }
         } else {
-            Write-Warning "Échec de l'upload de la page de la carte numérique."
+            Write-Host "Le traitement de la carte de visite numérique est ignoré pour cet utilisateur." -ForegroundColor DarkGray
         }
     }
 
-
     # --- LOGIQUE POUR LE BLOC QR CODE DANS LA SIGNATURE MAIL ---
     $digital_card_html_block = ""
-    # La signature ne doit pas inclure la carte si le compte est suspendu
     if ($AddDigitalCard -and (-not [string]::IsNullOrEmpty($qrCodeImageUrl_raw_for_digital_card)) -and -not $isSuspended) {
         $digital_card_html_block = @"
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="padding-top:10px;"><tr>
@@ -905,50 +684,23 @@ foreach ($user in $usersToProcess) {
             Write-Host "Le bloc QR Code pour la signature est désactivé (-AddDigitalCard non spécifié)." -ForegroundColor DarkGray
         }
     }
-
+    
     # --- Préparation de la SIGNATURE GMAIL ---
     $logPhoneLines = @();
 
     # Construire phoneBlockHtmlForSignatureFinal de manière explicite
     $phoneBlockHtmlForSignatureFinal = ""
-    # Ligne mobile (si présente)
     if (-not [string]::IsNullOrEmpty($phoneData.RawMobilePhone)) {
         $phoneBlockHtmlForSignatureFinal += "Mobile : <a href=`"tel:$($phoneData.RawMobilePhone)`" style=`"color: #555555; text-decoration: underline;`">$($phoneData.MobilePhoneDisplayForTemplates)</a><br>"
     }
-    # Ligne directe (si présente)
     if (-not [string]::IsNullOrEmpty($phoneData.RawWorkPhone)) {
         $phoneBlockHtmlForSignatureFinal += "Ligne directe : <a href=`"tel:$($phoneData.RawWorkPhone)`" style=`"color: #555555; text-decoration: underline;`">$($phoneData.WorkPhoneDisplayForTemplates)</a><br>"
     }
-    # Standard (si pas de work phone)
     if (-not $phoneData.HasWorkPhoneFromGam) {
-        # Ajouter le standard SEULEMENT si ce n'est PAS déjà le numéro mobile (pour éviter la duplication si le mobile est le seul numéro GAM)
         if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone) {
             $phoneBlockHtmlForSignatureFinal += "Téléphone (Centre) : <a href=`"tel:$($config.DefaultPhoneNumberRaw)`" style=`"$linkStyleGeneral`">$($config.DefaultPhoneNumberDisplay)</a><br>"
         }
     }
-
-
-    # Logs pour la console (rappel, ceci n'affecte pas le HTML, juste l'affichage dans la console)
-    if ($phoneData.RawPrimaryDisplayPhone) {
-        $logPhoneLines += "Ligne principale (affichée) : $($phoneData.RawPrimaryDisplayPhone)"
-    }
-    if ($phoneData.MobilePhoneDisplayForTemplates -and ($phoneData.RawMobilePhone -ne $phoneData.RawPrimaryDialPhone)) {
-        $logPhoneLines += "Mobile (affiché) : $($phoneData.MobilePhoneDisplayForTemplates)"
-    }
-    if ($phoneData.UsedDefaultPhoneAsPrimary -eq $false -and $phoneData.HasMobilePhoneFromGam -eq $true -and $phoneData.HasWorkPhoneFromGam -eq $false) {
-        if ($config.DefaultPhoneNumberRaw -ne $phoneData.RawMobilePhone) {
-            $logPhoneLines += "Téléphone (standard - ajouté) : $($config.DefaultPhoneNumberDisplay)"
-        }
-    }
-    if ($phoneData.UsedDefaultPhoneAsPrimary -eq $true) {
-        $logPhoneLines += "Téléphone (standard - principal) : $($config.DefaultPhoneNumberDisplay)"
-    }
-
-    Write-Host "  - Prénom        : $givenName_val" -ForegroundColor Gray
-    Write-Host "  - Nom           : $familyName_val" -ForegroundColor Gray
-    Write-Host "  - Titre         : $(if ([string]::IsNullOrEmpty($title_val)) { '(aucun)' } else { $title_val })" -ForegroundColor Gray
-    Write-Host "  - Adresse       : $addressForSignature" -ForegroundColor Gray
-    if ($logPhoneLines.Count -gt 0) { foreach($line in $logPhoneLines){ Write-Host "  - Téléphone   : $line" -ForegroundColor Gray } } else { Write-Host "  - Téléphone   : (aucun)" -ForegroundColor Gray }
 
     $functionLineConditional = ""; if ($title_val -ne "") { $functionLineConditional = "<span style=`"font-size: 10pt; color: #555555;`">" + $title_val.Trim() + "</span>" }
 
