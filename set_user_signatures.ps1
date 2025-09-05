@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v51.01 - Ajout des boutons RSI)
+﻿# set_user_signatures.ps1 (v51.02 - Ajout des boutons RSI - Correction des URL)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -15,7 +15,7 @@ param(
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
-$script:ScriptVersion = "v51.01 - Ajout des boutons RSI"
+$script:ScriptVersion = "v51.02 - Ajout des boutons RSI - Correction des URL"
 Write-Host "Démarrage du script : set_user_signatures.ps1 ($script:ScriptVersion)" -ForegroundColor Green
 
 if ($ShowHelp) {
@@ -989,7 +989,7 @@ if ($AddButtons -and ($primaryEmail_val -eq "s.gille@cjml.fr")) {
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 10px;">
     <tr>
         <td style="text-align: right; vertical-align: middle;">
-            <a href="{{AgendaUrl}}"
+            <a href="$($config.AgendaUrl)"
                target="_blank"
                rel="noopener noreferrer"
                style="
@@ -1009,7 +1009,7 @@ if ($AddButtons -and ($primaryEmail_val -eq "s.gille@cjml.fr")) {
                ">
                 Prendre Rendez-vous
             </a>
-            <a href="{{GlpiUrl}}"
+            <a href="$($config.GlpiUrl)"
                target="_blank"
                rel="noopener noreferrer"
                style="
