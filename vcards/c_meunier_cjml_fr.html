@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-KHZKJNZM');</script>
-    <!-- End Google Tag Manager -->
-
-    <!-- Balise noindex pour les moteurs de recherche -->
-    <meta name="robots" content="noindex, nofollow">
-    <meta charset="UTF-8">
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KHZKJNZM');</script>
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact - Compte Inactif</title>
+    <title>Contact - Christophe MEUNIER</title>
+	<meta name="robots" content="noindex, nofollow"> 
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -29,6 +25,7 @@
             --shadow-light: rgba(0,0,0,0.08);
             --shadow-medium: rgba(0,0,0,0.15);
         }
+
         body {
             font-family: 'Roboto', sans-serif;
             text-align: center;
@@ -50,7 +47,7 @@
             width: 95%;
             box-sizing: border-box;
             position: relative;
-            padding-bottom: 25px;
+            padding-bottom: 100px;
             overflow: hidden;
         }
         .logo {
@@ -76,12 +73,6 @@
             font-size: 1.1em;
             text-align: center;
             font-weight: 500;
-        }
-        .status-message {
-            color: #d9534f;
-            font-weight: 700;
-            font-size: 1.2em;
-            margin: 20px 0;
         }
         hr {
             border: 0;
@@ -152,6 +143,223 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 10px var(--shadow-medium);
         }
+
+        .bottom-actions-container {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            right: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            width: calc(100% - 50px);
+            box-sizing: border-box;
+        }
+
+        .qr-code-small-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1;
+            transition: transform 0.2s ease;
+            flex-direction: row;
+            text-align: left;
+            width: auto;
+            flex-shrink: 0;
+        }
+        .qr-code-small-container:hover {
+            transform: scale(1.03);
+        }
+        .qr-code-small {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 6px;
+            padding: 3px;
+            background-color: white;
+            margin-right: 8px;
+        }
+        .qr-code-text {
+            font-size: 0.7em;
+            color: var(--text-medium);
+            line-height: 1.2;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .share-button-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-grow: 1;
+            position: static;
+            bottom: auto;
+            left: auto;
+            right: auto;
+            margin-left: 10px;
+        }
+        .share-main-button {
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 0.95em;
+            text-decoration: none;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px var(--shadow-light);
+            background-color: var(--accent-orange);
+            color: white !important;
+            border: 1px solid var(--accent-orange);
+            cursor: pointer;
+            white-space: nowrap;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        .share-main-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px var(--shadow-medium);
+        }
+
+        /* Overlays (QR and Share) */
+        .qr-overlay, .share-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .qr-overlay.visible, .share-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .qr-overlay-content, .share-overlay-content {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 14px;
+            max-width: 88%;
+            max-height: 88%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            box-shadow: 0 12px 30px var(--shadow-medium);
+        }
+        .qr-overlay-img {
+            max-width: 100%;
+            max-height: calc(100vh - 160px);
+            width: auto;
+            height: auto;
+            border: 5px solid var(--primary-blue);
+            border-radius: 9px;
+        }
+        .qr-overlay-text {
+            color: var(--text-dark);
+            font-size: 1em;
+            text-align: center;
+            font-weight: 500;
+        }
+        .qr-overlay-close, .share-overlay-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 2em;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+        .qr-overlay-close:hover, .share-overlay-close:hover {
+            color: var(--text-dark);
+            transform: rotate(90deg);
+        }
+        .qr-overlay-content .button, .share-overlay-content .button {
+            width: fit-content;
+            align-self: center;
+            padding: 10px 18px;
+            font-size: 0.95em;
+        }
+
+        .share-options-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 280px;
+        }
+        .share-option-button {
+            padding: 12px 18px;
+            border-radius: 7px;
+            font-weight: 500;
+            font-size: 0.95em;
+            text-decoration: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px var(--shadow-light);
+            color: var(--text-dark) !important;
+            border: 1px solid var(--border-light);
+            background-color: var(--card-bg);
+            cursor: pointer;
+        }
+        .share-option-button:hover {
+            background-color: var(--background-light);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px var(--shadow-medium);
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding-bottom: 90px;
+            }
+            .bottom-actions-container {
+                left: 15px;
+                right: 15px;
+                bottom: 15px;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-end;
+                gap: 5px;
+                width: calc(100% - 30px);
+            }
+            .qr-code-small-container, .share-button-container {
+                position: relative;
+                width: auto;
+                justify-content: flex-start;
+                flex-grow: 0;
+            }
+            .share-button-container {
+                margin-left: 5px;
+            }
+            .share-main-button {
+                width: auto;
+                padding: 10px 12px;
+                font-size: 0.85em;
+                white-space: nowrap;
+            }
+            .qr-code-text {
+                font-size: 0.65em;
+            }
+            .qr-code-small {
+                width: 45px;
+                height: 45px;
+            }
+        }
+        
         .page-footer {
             text-align: center;
             padding: 25px 15px;
@@ -165,6 +373,7 @@
             text-decoration: underline;
             color: var(--text-medium);
         }
+
         /* --- STYLES DU BANDEAU DE CONSENTEMENT (AJUSTÉS POUR MOBILE) --- */
         #cookieConsentBanner {
             position: fixed;
@@ -257,38 +466,63 @@
     </style>
 </head>
 <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KHZKJNZM"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KHZKJNZM"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="card">
         <img src="https://raw.githubusercontent.com/Centre-Jean-Marie-LARRIEU/assets-cjml/main/logo-horizontal.jpg" alt="Logo" class="logo">
-        <h1 style="color: #666; font-size: 1.5em;">Ce compte est inactif</h1>
-        <p class="status-message">Veuillez contacter le secrétariat général pour toute demande.</p>
+        <h1>Christophe MEUNIER</h1>
+        <p class="title"></p>
+        <a href="data:text/vcard;charset=utf-8,BEGIN%3AVCARD%0AVERSION%3A3.0%0AN%3AMEUNIER%3BChristophe%3B%3B%3B%0AFN%3AChristophe%20MEUNIER%0AORG%3ACentre%20Jean-Marie%20LARRIEU%0ATEL%3Btype%3DWORK%2Cvoice%3A%2B33562913250%0AEMAIL%3Btype%3DINTERNET%3Btype%3DWORK%3Btype%3Dpref%3Ac.meunier%40cjml.fr%0AADR%3Btype%3DWORK%3A%3B%3B414%20Rue%20du%20Layris%5Cn65710%20CAMPAN%3B%3B%3B%3B%0AEND%3AVCARD" download="Christophe_MEUNIER.vcf" class="button primary" id="saveContactButton">Enregistrer dans mes Contacts</a>
         <hr>
         <div class="contact-info">
-            <div class="contact-item"><span class="label">Téléphone (Centre)</span><a href="tel:+33562913250">05 62 91 32 50</a></div>
-            <div class="contact-item"><span class="label">Email</span><a href="mailto:info@cjml.fr">info@cjml.fr</a></div>
-            <div class="contact-item">
-                <span class="label">Site Web</span>
-                <a href="http://www.cjml.fr" target="_blank" rel="noopener noreferrer" style="color: var(--primary-blue); text-decoration: underline;">www.cjml.fr</a>
-            </div>
-            <div class="contact-item">
-                <span class="label">Siège Social</span>
-                <a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" rel="noopener noreferrer">414 Rue du Layris<br>65710 CAMPAN</a>
-            </div>
+            <div class="contact-item"><span class="label">Téléphone (Centre)</span><a href="tel:+33562913250">05 62 91 32 50</a></div><div class="contact-item"><span class="label">Email</span><a href="mailto:c.meunier@cjml.fr">c.meunier@cjml.fr</a></div><div class="contact-item">
+    <span class="label">Site Web</span>
+    <a href="http://www.cjml.fr" target="_blank" rel="noopener noreferrer" style="color: var(--primary-blue); text-decoration: underline;">www.cjml.fr</a>
+</div><div class="contact-item">
+    <span class="label">Siège Social</span>
+    <a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" rel="noopener noreferrer">414 Rue du Layris - 65710 CAMPAN</a>
+</div>
         </div>
         <div class="action-buttons" id="actionButtonsContainer">
-            <a href="tel:+33562913250" class="button secondary trackable-action-button" data-analytics-label="Appeler (Centre)">Appeler le Centre</a>
-            <a href="mailto:info@cjml.fr" class="button secondary trackable-action-button" data-analytics-label="Envoyer Email">Envoyer un Email</a>
-            <a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary trackable-action-button" data-analytics-label="Itinéraire">Itinéraire</a>
+            <a href="tel:+33562913250" class="button secondary trackable-action-button" data-analytics-label="Appeler (Centre)">Appeler le Centre</a><a href="mailto:c.meunier@cjml.fr" class="button secondary trackable-action-button" data-analytics-label="Envoyer Email">Envoyer un Email</a><a href="https://www.google.com/maps/search/?api=1&query=414+Rue+du+Layris+-+65710+CAMPAN" target="_blank" class="button secondary trackable-action-button" data-analytics-label="Itinéraire">Itinéraire</a>
+        </div>
+
+        <div class="bottom-actions-container">
+            <div class="qr-code-small-container" id="qrCodeSmallButton" onclick="showQrCodeOverlay()">
+                <img src="https://ressources.cjml.fr/qrcodes/c_meunier_cjml_fr.png" alt="QR Code" class="qr-code-small">
+                <span class="qr-code-text">Scannez<br>ma carte</span>
+            </div>
+
+            <div class="share-button-container">
+                <button class="share-main-button" id="shareButton" onclick="showShareOverlay()">Partager</button>
+            </div>
         </div>
     </div>
 
     <footer class="page-footer">
         <a href="mentions-legales.html">Mentions Légales & Politique de Confidentialité</a>
     </footer>
+
+    <div id="qrOverlay" class="qr-overlay" onclick="hideQrCodeOverlay(event)">
+        <div class="qr-overlay-content" onclick="event.stopPropagation()">
+            <button class="qr-overlay-close" onclick="hideQrCodeOverlay(event)">×</button>
+            <img id="qrOverlayImg" src="https://ressources.cjml.fr/qrcodes/c_meunier_cjml_fr.png" alt="QR Code" class="qr-overlay-img">
+            <p class="qr-overlay-text">Scannez ce QR Code pour accéder à la carte de visite de <br><b>Christophe MEUNIER</b></p>
+            <p><a href="https://ressources.cjml.fr/vcards/c_meunier_cjml_fr.html" target="_blank" class="button primary" style="width: auto; padding: 10px 20px; margin-top: 10px;" id="qrOverlayLinkButton">Accéder à la page complète</a></p>
+        </div>
+    </div>
+
+    <div id="shareOverlay" class="share-overlay" onclick="hideShareOverlay(event)">
+        <div class="share-overlay-content" onclick="event.stopPropagation()">
+            <button class="share-overlay-close" onclick="hideShareOverlay(event)">×</button>
+            <p class="qr-overlay-text" style="margin-bottom: 0;">Partager la carte de visite de <br><b>Christophe MEUNIER</b></p>
+            <div class="share-options-menu">
+                <button class="share-option-button" id="nativeShareButton" onclick="handleNativeShare()">Partager (appareil)</button>
+                <a href="mailto:?subject=Carte de Visite de Christophe MEUNIER&body=Découvrez la carte de Visite numérique de Christophe MEUNIER : https://ressources.cjml.fr/vcards/c_meunier_cjml_fr.html" class="share-option-button" id="emailShareButton">Envoyer par Email</a>
+                <button class="share-option-button" id="copyLinkShareButton" onclick="copyLink()">Copier le lien</button>
+            </div>
+        </div>
+    </div>
 
     <div id="cookieConsentBanner">
         <p>Ce site utilise des cookies à des fins de mesure d'audience anonymisée. Acceptez-vous leur dépôt ?</p>
@@ -300,27 +534,97 @@
     </div>
 
     <script>
-        // Fonctions existantes pour les overlays (pour compatibilité)
-        function showQrCodeOverlay() {}
-        function hideQrCodeOverlay(event) {}
-        function showShareOverlay() {}
-        function hideShareOverlay(event) {}
-        function handleNativeShare() {}
-        function copyLink() {}
+        // Fonctions existantes pour les overlays
+        function showQrCodeOverlay() {
+            const overlay = document.getElementById('qrOverlay');
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('shareOverlay').classList.remove('visible');
+        }
+
+        function hideQrCodeOverlay(event) {
+            if (event.target.id === 'qrOverlay' || event.target.classList.contains('qr-overlay-close')) {
+                const overlay = document.getElementById('qrOverlay');
+                overlay.classList.remove('visible');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function showShareOverlay() {
+            const overlay = document.getElementById('shareOverlay');
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('qrOverlay').classList.remove('visible');
+        }
+
+        function hideShareOverlay(event) {
+            if (event.target.id === 'shareOverlay' || event.target.classList.contains('share-overlay-close')) {
+                const overlay = document.getElementById('shareOverlay');
+                overlay.classList.remove('visible');
+                document.body.style.overflow = '';
+            }
+        }
+
+        async function handleNativeShare() {
+            const shareData = {
+                title: 'Carte de Visite Numérique de Christophe MEUNIER',
+                text: 'Découvrez la carte de Visite numérique de Christophe MEUNIER : https://ressources.cjml.fr/vcards/c_meunier_cjml_fr.html',
+                url: 'https://ressources.cjml.fr/vcards/c_meunier_cjml_fr.html'
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                    console.log('Partage natif réussi');
+                } catch (err) {
+                    console.log('Erreur de partage natif ou annulé: ', err);
+                } 
+            } else {
+                alert("La fonction de partage native n'est pas disponible sur votre appareil/navigateur. Veuillez utiliser 'Envoyer par Email' ou 'Copier le lien'.");
+            }
+            hideShareOverlay();
+        }
+
+        function copyLink() {
+            const linkToCopy = 'https://ressources.cjml.fr/vcards/c_meunier_cjml_fr.html';
+            navigator.clipboard.writeText(linkToCopy).then(() => {
+                alert("Lien copié dans le presse-papiers !");
+                console.log('Lien copié: ', linkToCopy);
+            }).catch(err => {
+                console.error('Erreur lors de la copie du lien: ', err);
+                const textArea = document.createElement("textarea");
+                textArea.value = linkToCopy;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    const successful = document.execCommand('copy');
+                    const msg = successful ? 'Lien copié dans le presse-papiers !' : 'Erreur lors de la copie du lien.';
+                    alert(msg);
+                } catch (err) {
+                    alert("Impossible de copier le lien. Veuillez le copier manuellement depuis la barre d'adresse : " + linkToCopy);
+                }
+                document.body.removeChild(textArea);
+            }).finally(() => {
+                hideShareOverlay();
+            });
+        }
 
         // --- SCRIPT DE GESTION DU CONSENTEMENT ET GOOGLE ANALYTICS ---
         const GA4_MEASUREMENT_ID = 'G-2MWWE56469'; // VOTRE ID GA4
 
         function initializeGoogleAnalytics() {
-            if (window.gaInitialized) return;
-
+            if (window.gaInitialized) return; 
+            
             if (typeof window.gtag !== 'function') {
                 console.error('Erreur: gtag n\'est pas défini globalement avant initializeGoogleAnalytics(). Le suivi ne peut pas être initialisé.');
                 return;
             }
 
-            gtag('js', new Date());
-            gtag('set', { 'card_user_name': 'Compte Inactif' }); // Nom générique pour le suivi
+            gtag('js', new Date()); 
+            gtag('set', { 'card_user_name': 'Christophe MEUNIER' });
             gtag('config', GA4_MEASUREMENT_ID);
 
             console.log('Google Analytics initialisé (via consentement).');
@@ -330,11 +634,11 @@
             } else {
                 setupGAEventListeners();
             }
-            window.gaInitialized = true;
+            window.gaInitialized = true; 
         }
 
         function setupGAEventListeners() {
-            const userName = 'Compte Inactif';
+            const userName = 'Christophe MEUNIER';
 
             function sendButtonClickEvent(category, label, text) {
                 if (typeof window.gtag === 'function') {
@@ -348,11 +652,32 @@
                     console.warn('Erreur: gtag n\'est pas disponible pour envoyer l\'événement de clic.');
                 }
             }
-            
-            // Les boutons d'action sur la carte inactif n'ont pas d'ID, on les sélectionne par classe
+
+            document.getElementById('saveContactButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Enregistrer Contact', 'Enregistrer dans mes Contacts');
+            });
+            document.getElementById('qrCodeSmallButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Afficher QR Code', 'Scannez ma carte');
+            });
+            document.getElementById('shareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Ouvrir Partage', 'Partager');
+            });
+            document.getElementById('qrOverlayLinkButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Lien Page Complete QR Overlay', 'Accéder à la page complète');
+            });
+            document.getElementById('nativeShareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Partager Natif', 'Partager (appareil)');
+            });
+            document.getElementById('emailShareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Partager Email', 'Envoyer par Email');
+            });
+            document.getElementById('copyLinkShareButton')?.addEventListener('click', function() {
+                sendButtonClickEvent('Carte de Visite', 'Copier Lien Partage', 'Copier le lien');
+            });
+
             const actionButtonsContainer = document.getElementById('actionButtonsContainer');
             if (actionButtonsContainer) {
-                actionButtonsContainer.querySelectorAll('a.button').forEach(button => {
+                actionButtonsContainer.querySelectorAll('a.button, button.button').forEach(button => {
                     const buttonText = button.textContent.trim() || button.getAttribute('data-analytics-label') || 'Action Button';
                     button.addEventListener('click', function() {
                         sendButtonClickEvent('Carte de Visite - Actions', buttonText, buttonText);
