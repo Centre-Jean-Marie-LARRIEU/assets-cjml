@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v50.03 - Ajout de la mise à jour AD Title - Version corrigée et réintégrée 2)
+﻿# set_user_signatures.ps1 (v51.01 - Ajout des boutons RSI)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -10,12 +10,12 @@ param(
     [switch]$ShowHelp,
     [switch]$DebugMode,
     [switch]$CleanInactiveCards,
-    [switch]$UpdateAdTitle # NOUVEAU COMMUTATEUR
+    [switch]$UpdateAdTitle, # NOUVEAU COMMUTATEUR
 	[switch]$AddButtons # NOUVEAU COMMUTATEUR
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
-$script:ScriptVersion = "v50.03 - Ajout de la mise à jour AD Title - Version corrigée et réintégrée 2"
+$script:ScriptVersion = "v51.01 - Ajout des boutons RSI"
 Write-Host "Démarrage du script : set_user_signatures.ps1 ($script:ScriptVersion)" -ForegroundColor Green
 
 if ($ShowHelp) {
@@ -983,12 +983,13 @@ foreach ($user in $usersToProcess) {
 
 # --- LOGIQUE POUR LE BLOC DE BOUTONS OPTIONNELS DANS LA SIGNATURE MAIL ---
 $buttonsHtmlBlock = ""
-if ($AddButtons) {
+if ($AddButtons -and ($primaryEmail_val -eq "s.gille@cjml.fr")) {
+    Write-Host "  - Ajout des boutons de l'équipe RSI dans la signature pour s.gille@cjml.fr." -ForegroundColor DarkGray
     $buttonsHtmlBlock = @"
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 15px;">
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 10px;">
     <tr>
-        <td align="center">
-            <a href="$($config.AgendaUrl)"
+        <td style="text-align: right; vertical-align: middle;">
+            <a href="{{AgendaUrl}}"
                target="_blank"
                rel="noopener noreferrer"
                style="
@@ -1004,29 +1005,37 @@ if ($AddButtons) {
                     text-align: center;
                     border: 1px solid #FCB041;
                     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    margin-right: 10px;
                ">
                 Prendre Rendez-vous
+            </a>
+            <a href="{{GlpiUrl}}"
+               target="_blank"
+               rel="noopener noreferrer"
+               style="
+                    display: inline-block;
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    background-color: #068FD0;
+                    color: #FFFFFF !important;
+                    font-family: Arial, sans-serif;
+                    font-size: 10pt;
+                    font-weight: bold;
+                    text-decoration: none;
+                    text-align: center;
+                    border: 1px solid #068FD0;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+               ">
+                Plateforme d'assistance
             </a>
         </td>
     </tr>
 </table>
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 10px;">
-    <tr>
-        <td align="center">
-            <p style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 9pt; color: #555555;">
-                Besoin d'aide ? Accédez à notre <a href="$($config.GlpiUrl)"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   style="
-                        color: #068FD0;
-                        text-decoration: underline;
-                        font-weight: bold;
-                   ">plateforme d'assistance</a>.
-            </p>
-        </td>
-    </tr>
-</table>
 "@
+} else {
+    if ($DebugMode) {
+        Write-Host "  - Le bloc de boutons n'a pas été ajouté (paramètre -AddButtons non spécifié)." -ForegroundColor DarkGray
+    }
 }
 
     # --- Préparation de la SIGNATURE GMAIL ---
@@ -1079,6 +1088,7 @@ if ($AddButtons) {
 
     $signatureReplacements = @{
         '{{digital_card_html_block}}' = $digital_card_html_block
+        '{{buttons_html_block}}'      = $buttonsHtmlBlock
         '{{givenName}}'               = $givenName_val
         '{{familyName}}'              = $familyName_val
         '{{functionLineConditional}}' = $functionLineConditional
