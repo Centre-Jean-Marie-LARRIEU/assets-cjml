@@ -11,6 +11,7 @@ param(
     [switch]$DebugMode,
     [switch]$CleanInactiveCards,
     [switch]$UpdateAdTitle # NOUVEAU COMMUTATEUR
+	[switch]$AddButtons # NOUVEAU COMMUTATEUR
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
@@ -120,6 +121,9 @@ $config = @{
     WebsiteUrl            = "http://www.cjml.fr"
     MainDomain            = "cjml.fr"
     ExcludeDomain         = "eleves.cjml.fr"
+	
+	GlpiUrl          = "https://glpi.cjml.fr/front/helpdesk.faq.php"
+    AgendaUrl        = "https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ3HL4frp6xjy1hXKv_1Hs44H9Ga6FHChROiGr3dM9bMv9MwYQICwY-zWPPlIJKqT06gD20nNe24"
 
     QrCodeDllPath         = Join-Path -Path $PSScriptRoot -ChildPath "QRCoder.dll"
     QrCodeColors = @{
@@ -976,6 +980,54 @@ foreach ($user in $usersToProcess) {
             Write-Host "Le bloc QR Code pour la signature est désactivé (-AddDigitalCard non spécifié)." -ForegroundColor DarkGray
         }
     }
+
+# --- LOGIQUE POUR LE BLOC DE BOUTONS OPTIONNELS DANS LA SIGNATURE MAIL ---
+$buttonsHtmlBlock = ""
+if ($AddButtons) {
+    $buttonsHtmlBlock = @"
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 15px;">
+    <tr>
+        <td align="center">
+            <a href="$($config.AgendaUrl)"
+               target="_blank"
+               rel="noopener noreferrer"
+               style="
+                    display: inline-block;
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    background-color: #FCB041;
+                    color: #FFFFFF !important;
+                    font-family: Arial, sans-serif;
+                    font-size: 10pt;
+                    font-weight: bold;
+                    text-decoration: none;
+                    text-align: center;
+                    border: 1px solid #FCB041;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+               ">
+                Prendre Rendez-vous
+            </a>
+        </td>
+    </tr>
+</table>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 10px;">
+    <tr>
+        <td align="center">
+            <p style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 9pt; color: #555555;">
+                Besoin d'aide ? Accédez à notre <a href="$($config.GlpiUrl)"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   style="
+                        color: #068FD0;
+                        text-decoration: underline;
+                        font-weight: bold;
+                   ">plateforme d'assistance</a>.
+            </p>
+        </td>
+    </tr>
+</table>
+"@
+}
 
     # --- Préparation de la SIGNATURE GMAIL ---
     $logPhoneLines = @();
