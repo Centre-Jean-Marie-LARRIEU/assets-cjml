@@ -1,4 +1,4 @@
-﻿# set_user_signatures.ps1 (v50.01 - Version corrigée et réintégrée)
+﻿# set_user_signatures.ps1 (v50.03 - Ajout de la mise à jour AD Title - Version corrigée et réintégrée 2)
 #
 param(
     [string]$SingleUserEmail = "",
@@ -14,7 +14,7 @@ param(
 )
 
 # NOUVEAU : Définir et afficher la version du script APRES le bloc param
-$script:ScriptVersion = "v50.01 - Ajout de la mise à jour AD Title"
+$script:ScriptVersion = "v50.03 - Ajout de la mise à jour AD Title - Version corrigée et réintégrée 2"
 Write-Host "Démarrage du script : set_user_signatures.ps1 ($script:ScriptVersion)" -ForegroundColor Green
 
 if ($ShowHelp) {
@@ -409,15 +409,98 @@ function Get-UserPhoneData {
 
 
 function Get-TemplateContent($TemplatePath) {
+    # Vérifier si le chemin existe pour éviter l'erreur
+    if (-not (Test-Path $TemplatePath)) {
+        Write-Error "Template non trouvé à l'emplacement : $TemplatePath"
+        return $null
+    }
     $content = Get-Content -Path $TemplatePath -Encoding UTF8 -Raw
     return $content.TrimStart([char]65279, [char]22)
 }
+
+# NOUVELLE FONCTION pour la mise à jour AD
+function Update-ADUserTitleAndDepartment {
+    param(
+        [string]$UserEmail,
+        [string]$NewTitle,
+        [string]$NewDepartment
+    )
+
+    Write-Host "  - Tentative de mise à jour des attributs AD pour '$UserEmail'..." -ForegroundColor Yellow
+    
+    # Vérifier si le module ActiveDirectory est installé et importé
+    if (-not (Get-Module -Name "ActiveDirectory" -ListAvailable)) {
+        Write-Warning "Le module 'ActiveDirectory' n'est pas installé sur ce système. Impossible de mettre à jour l'AD."
+        return
+    }
+    try {
+        Import-Module ActiveDirectory -ErrorAction Stop
+    } catch {
+        Write-Error "Échec de l'importation du module ActiveDirectory. Veuillez vérifier les permissions ou l'installation."
+        return
+    }
+
+    try {
+        $adUser = Get-ADUser -Filter "EmailAddress -eq '$UserEmail'" -Properties Title, Department -ErrorAction Stop
+        if ($adUser) {
+            $changeMade = $false
+
+            # Nettoyage des chaînes de caractères pour enlever les caractères non imprimables
+            $cleanNewTitle = [string]($NewTitle -replace "[^\x20-\x7E\p{L}\p{N}\s]", "").Trim()
+            $cleanNewDepartment = [string]($NewDepartment -replace "[^\x20-\x7E\p{L}\p{N}\s]", "").Trim()
+
+            # --- LOGIQUE POUR LA MISE À JOUR DU TITRE ---
+            if (-not ([string]::Equals($adUser.Title, $cleanNewTitle, [System.StringComparison]::OrdinalIgnoreCase))) {
+                if ([string]::IsNullOrEmpty($cleanNewTitle)) {
+                    Write-Host "    - Le titre est vide dans GAM. Nettoyage de l'attribut Title dans l'AD." -ForegroundColor Green
+                    Set-ADUser -Identity $adUser -Clear Title
+                } else {
+                    Write-Host "    - Titre mis à jour de '$($adUser.Title)' à '$cleanNewTitle'." -ForegroundColor Green
+                    Set-ADUser -Identity $adUser -Title $cleanNewTitle
+                }
+                $changeMade = $true
+            } else {
+                Write-Host "    - Titre de l'utilisateur déjà à jour : '$cleanNewTitle'." -ForegroundColor DarkGray
+            }
+
+            # --- LOGIQUE POUR LA MISE À JOUR DU DÉPARTEMENT ---
+            if (-not ([string]::Equals($adUser.Department, $cleanNewDepartment, [System.StringComparison]::OrdinalIgnoreCase))) {
+                if ([string]::IsNullOrEmpty($cleanNewDepartment)) {
+                    Write-Host "    - Le département est vide dans GAM. Nettoyage de l'attribut Department dans l'AD." -ForegroundColor Green
+                    Set-ADUser -Identity $adUser -Clear Department
+                } else {
+                    Write-Host "    - Département mis à jour de '$($adUser.Department)' à '$cleanNewDepartment'." -ForegroundColor Green
+                    Set-ADUser -Identity $adUser -Department $cleanNewDepartment
+                }
+                $changeMade = $true
+            } else {
+                Write-Host "    - Département de l'utilisateur déjà à jour : '$cleanNewDepartment'." -ForegroundColor DarkGray
+            }
+            
+            if (-not $changeMade) {
+                Write-Host "  - Aucun changement nécessaire pour les attributs AD de '$UserEmail'." -ForegroundColor Green
+            }
+        } else {
+            Write-Warning "Utilisateur '$UserEmail' non trouvé dans l'Active Directory."
+        }
+    } catch {
+        Write-Error "Échec de la mise à jour de l'utilisateur AD. Erreur: $($_.Exception.Message)"
+    }
+}
+
 
 # --- Récupération et filtrage des utilisateurs ---
 $usersToProcess = @()
 if (-not $ShowHelp) {
     $fieldsToGet = 'primaryEmail,name,organizations,phones,addresses,suspended'
-	if (-not [string]::IsNullOrEmpty($SingleUserEmail)) {
+    if ($UpdateAdTitle) {
+        # Si on ne fait que l'AD Sync, on n'a pas besoin de tous les champs
+        # Cela pourrait être optimisé si nécessaire, mais pour l'instant on garde tous les champs pour la simplicité
+        $fieldsToGet = 'primaryEmail,name,organizations,phones,addresses,suspended'
+    }
+    
+    # Construction de la commande GAM pour le mode SingleUserEmail
+    if (-not [string]::IsNullOrEmpty($SingleUserEmail)) {
         Write-Host "--- MODE UTILISATEUR UNIQUE: Cible l'utilisateur '$SingleUserEmail' ---" -ForegroundColor Yellow
         
         $gamQuery = "email='$SingleUserEmail'"
@@ -430,10 +513,24 @@ if (-not $ShowHelp) {
         Write-Host "DEBUG: GAM Command for single user: $($config.GamPath) $($gamArgs -join ' ')" -ForegroundColor DarkGray
         $gamOutput = & $config.GamPath $gamArgs | ConvertFrom-Csv
         if ($gamOutput) { 
-            $usersToProcess = $gamOutput | Where-Object { $_.primaryEmail -eq $SingleUserEmail }
+            # Force la sortie en tableau pour une consistance, même avec un seul utilisateur
+            $usersToProcess = @($gamOutput) | Where-Object { $_.primaryEmail -eq $SingleUserEmail }
         } else {
             Write-Error "Impossible de récupérer les informations pour l'utilisateur '$SingleUserEmail'."
         }
+    } else {
+        # Logique pour le mode multi-utilisateurs
+        Write-Host "--- MODE MULTI-UTILISATEURS ---" -ForegroundColor Yellow
+        $gamArgs = @('print', 'users');
+        if (-not $IncludeSuspended -and -not $CleanInactiveCards) {
+            $gamArgs += 'query', 'isSuspended=False'
+        }
+        $gamArgs += 'fields', $fieldsToGet;
+        
+        Write-Host "DEBUG: GAM Command for multiple users: $($config.GamPath) $($gamArgs -join ' ')" -ForegroundColor DarkGray
+        $gamRawOutput = & $config.GamPath $gamArgs;
+        $allGSuiteUsers = $gamRawOutput | ConvertFrom-Csv;
+        $usersToProcess = $allGSuiteUsers | Where-Object { $_.primaryEmail -like "*@$($config.MainDomain)" -and $_.primaryEmail -notlike "*@$($config.ExcludeDomain)" }
     }
 }
 
@@ -448,9 +545,21 @@ foreach ($user in $usersToProcess) {
     $givenName_val = $user."name.givenName"
     $familyName_val = $user."name.familyName"
     $title_val = if ($user."organizations.0.title") { $user."organizations.0.title" } else { "" }
+    $department_val = if ($user."organizations.0.department") { $user."organizations.0.department" } else { "" }
     $isSuspended = [string]::Equals($user.suspended, "True", [System.StringComparison]::OrdinalIgnoreCase)
 
     Write-Host "--- Processing user: $primaryEmail_val (Suspended: $isSuspended) ---" -ForegroundColor Cyan
+    
+    # NOUVEAU BLOC pour la mise à jour de l'AD - Exécuté en premier
+    if ($UpdateAdTitle) {
+        Write-Host "  - Tentative de mise à jour des attributs AD pour '$primaryEmail_val'..." -ForegroundColor Yellow
+        Update-ADUserTitleAndDepartment -UserEmail $primaryEmail_val -NewTitle $title_val -NewDepartment $department_val
+        # Si seul le commutateur UpdateAdTitle est actif, on peut passer à l'utilisateur suivant après la mise à jour
+        if (-not ($AddDigitalCard -or $GeneratePrintQr -or $GeneratePrintableCard -or $GeneratePdfCard -or $CleanInactiveCards)) {
+            Write-Host "--- Fin du traitement pour $primaryEmail_val (Update AD Title seulement) ---`n" -ForegroundColor DarkGray
+            continue;
+        }
+    }
 
     # Traitement de l'adresse
     $address_val = $config.DefaultAddress
@@ -492,10 +601,8 @@ foreach ($user in $usersToProcess) {
     }
 
     # --- Préparation des variables spécifiques à la carte numérique et à la signature ---
-
     $cardContactTextHtmlForDigitalCard = ""
     $phoneBlockHtmlForSignatureFinal = "" # Nouveau: Initialiser ici pour la signature
-
     $linkStyleGeneral = "color: #555555; text-decoration: underline;" # Style commun pour les liens de téléphone/email/adresse
 
 
@@ -531,7 +638,6 @@ foreach ($user in $usersToProcess) {
             }
         }
     }
-
 
     # Email
     $cardContactTextHtmlForDigitalCard += @"
